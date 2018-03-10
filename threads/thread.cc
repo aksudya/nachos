@@ -146,7 +146,7 @@ Thread::Finish ()
     (void) interrupt->SetLevel(IntOff);		
     ASSERT(this == currentThread);
     
-    DEBUG('t', "Finishing thread \"%s\"\n", getName());
+    DEBUG('t', "Finishing thread \"%s\"\n", name);
     
     threadToBeDestroyed = currentThread;
     Sleep();					// invokes SWITCH
@@ -179,7 +179,7 @@ Thread::Yield ()
     
     ASSERT(this == currentThread);
     
-    DEBUG('t', "Yielding thread \"%s\"\n", getName());
+    DEBUG('t', "Yielding thread \"%s\"\n", name);
     
     nextThread = scheduler->FindNextToRun();
     if (nextThread != NULL) {
@@ -216,7 +216,7 @@ Thread::Sleep ()
     ASSERT(this == currentThread);
     ASSERT(interrupt->getLevel() == IntOff);
     
-    DEBUG('t', "Sleeping thread \"%s\"\n", getName());
+    DEBUG('t', "Sleeping thread \"%s\"\n", name);
 
     status = BLOCKED;
     while ((nextThread = scheduler->FindNextToRun()) == NULL)

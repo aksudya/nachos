@@ -52,9 +52,12 @@
 
 #include "utility.h"
 #include "system.h"
+#include "dllist.h"
 
 #ifdef THREADS
 extern int testnum;
+extern int T;
+extern int N;
 #endif
 
 // External functions used by this file
@@ -87,6 +90,9 @@ main(int argc, char **argv)
     DEBUG('t', "Entering main");
     (void) Initialize(argc, argv);
     
+    //RandomInit(10);
+    //DLList *list=new DLList;
+
 #ifdef THREADS
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
       argCount = 1;
@@ -95,6 +101,12 @@ main(int argc, char **argv)
         testnum = atoi(argv[1]);
         argCount++;
         break;
+      case 'm':
+    	testnum = 2;
+    	T=atoi(argv[1]);
+    	N=atoi(argv[2]);
+    	argCount+=3;
+    	break;
       default:
         testnum = 1;
         break;
