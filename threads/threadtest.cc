@@ -44,19 +44,19 @@ SimpleThread(int which)
 void
 TestDllist(int which)
 {
-	printf("*** thread %d ***\n",which);
+	//printf("*** thread %d ***\n",which);
 	InsertList(N,list);
 	//currentThread->Yield();
-	printf("*** thread %d ***\n",which);
+	//printf("*** thread %d ***\n",which);
 	RemoveList(N,list);
-	printf("*** thread %d ***\n",which);
+	//printf("*** thread %d ***\n",which);
 	if(list->IsEmpty())
 	{
-		printf("empty\n");
+		printf("*** thread %d :empty ***\n",which);
 	}
 	else
 	{
-		printf("no\n");
+		printf("*** thread %d :not empty ***\n",which);
 	}
 
 }
@@ -89,13 +89,13 @@ ThreadTest2()
 		No[0]=var+48;
 		//char name[18]="forked thread ";	//error
 		char *name=new char[18];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+		name[0]='\0';
 		strcat(name,"forked thread ");
 		strcat(name,No);
 
 		Thread *t = new Thread(name);
 		t->Fork(TestDllist,var);
 		//TestDllist(0);
-
 	}
 
 }

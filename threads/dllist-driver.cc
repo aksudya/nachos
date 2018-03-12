@@ -11,7 +11,7 @@ void InsertList(int N, DLList *list)
         int *items=new int[1];
         items[0]=-key;
         item=items;
-        printf("in:%d %d\n",key,*(int*)item);
+        printf("%s in:%d %d\n",currentThread->getName(),key,*(int*)item);
         //currentThread->Yield();
         list->SortedInsert(item,key);
         //currentThread->Yield();
@@ -25,7 +25,7 @@ void RemoveList(int N, DLList *list)
         int key;
         void *item;
         item=list->Remove(&key);
-        printf("out:%d %d\n",key,*(int*)item);
+        printf("%s out:%d %d\n",currentThread->getName(),key,*(int*)item);
         //currentThread->Yield();
     }
 }
