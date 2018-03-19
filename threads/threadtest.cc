@@ -85,10 +85,10 @@ ThreadTest2()
 	list=new DLList();
 	for (int var = 0; var < T; var++)
 	{
-		char No[2]="1";
-		No[0]=var+48;
+		char No[4]="1";
+		sprintf(No, "%d", var);
 		//char name[18]="forked thread ";	//error
-		char *name=new char[18];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+		char *name=new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
 		name[0]='\0';
 		strcat(name,"forked thread ");
 		strcat(name,No);

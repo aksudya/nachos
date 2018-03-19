@@ -92,11 +92,11 @@ void *DLList::Remove(int *keyPtr)
     {
     	//currentThread->Yield();
         *keyPtr=first->key;
-        //currentThread->Yield();
+        //currentThread->Yield();	//error item key not match
         RemovedItem=first->item;
-        //currentThread->Yield();
+        //currentThread->Yield();	//error result error
         first=first->next;
-        //currentThread->Yield();
+        //currentThread->Yield();	//error result error
         if(first==NULL)
         {
         	//currentThread->Yield();
@@ -105,9 +105,9 @@ void *DLList::Remove(int *keyPtr)
         }
         else
         {
-        	//currentThread->Yield();		//error
+        	//currentThread->Yield();		//error destroy
             first->prev=NULL;
-            //currentThread->Yield();
+            //currentThread->Yield();		//error result error
         }
     }
     return RemovedItem;
@@ -123,7 +123,9 @@ void DLList::SortedInsert(void *item, int sortKey)
         temp->next=NULL;
         //currentThread->Yield();
         first=temp;
+        //currentThread->Yield();					//error destroy
         last=temp;
+        //currentThread->Yield();
     }
     else
     {
@@ -131,63 +133,46 @@ void DLList::SortedInsert(void *item, int sortKey)
         DLLElement *temp=new DLLElement(item,sortKey);
         //currentThread->Yield();
         DLLElement *find=first;
-        //currentThread->Yield();					//error
-        while (find!=NULL&&sortKey>=find->key  )
+        //currentThread->Yield();					//error destroy
+        while (find!=NULL&&sortKey>=find->key)
         {
-        	//currentThread->Yield();				//error
+        	//currentThread->Yield();				//error destroy
             find=find->next;
-            //currentThread->Yield();				//error
+            //currentThread->Yield();				//error destroy
         }
-        if(find==NULL)
+        if(find==NULL)		//在表尾插入
         {
-            if(this->IsEmpty())
-            {
-                temp->prev=NULL;
-                temp->next=NULL;
-                //currentThread->Yield();
-                first=temp;
-                //currentThread->Yield();
-                last=temp;
-            }
-            else
-            {
-                //currentThread->Yield();
-                temp->prev=last;
-                //currentThread->Yield();			//error
-                temp->next=NULL;
-                //currentThread->Yield();			//error
-                last->next=temp;
-                //currentThread->Yield();      		//error
-                last=temp;
-            }
+        	//currentThread->Yield();
+        	temp->prev=last;
+        	//currentThread->Yield();			//error destroy
+        	temp->next=NULL;
+        	//currentThread->Yield();			//error destroy
+        	last->next=temp;
+        	//currentThread->Yield();      		//error destroy
+        	last=temp;
         }
-        else if(find==first)
+        else if(find==first)	//在表头插入
         {
-            if(this->IsEmpty())
-            {
-                temp->prev=NULL;
-                temp->next=NULL;
-                first=temp;
-                last=temp;
-            }
-            else
-            {
-                temp->prev=NULL;
-                temp->next=first;
-                first->prev=temp;
-                first=temp;
-            }
+        	//currentThread->Yield();
+        	temp->prev=NULL;
+        	//currentThread->Yield();
+        	temp->next=first;
+        	//currentThread->Yield();      		//error destroy
+        	first->prev=temp;
+        	//currentThread->Yield();      		//error destroy
+        	first=temp;
+        	//currentThread->Yield();
         }
         else
         {
 
-        	//currentThread->Yield();				//error
+        	//currentThread->Yield();				//error destroy
             temp->prev=find->prev;
-            //currentThread->Yield();				//error
+            //currentThread->Yield();				//error destroy
             find->prev->next=temp;
-            //currentThread->Yield();				//error
+            //currentThread->Yield();				//error destroy
             find->prev=temp;
-            //currentThread->Yield();				//error
+            //currentThread->Yield();				//error destroy
             temp->next=find;
             //currentThread->Yield();
         }
