@@ -2,6 +2,7 @@
 //#include <cstdio>
 //#include<ctime>
 #include "system.h"
+#include "synch.h"
 
 #define START_KEY 100
 
@@ -32,4 +33,7 @@ public:
 private:
     DLLElement *first;
     DLLElement *last;
+
+	Lock *lock;				// enforce mutual exclusive access to the list
+	Condition *listEmpty;	// wait in Remove if the list is empty
 };
