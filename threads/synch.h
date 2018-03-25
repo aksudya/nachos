@@ -79,9 +79,10 @@ class Lock {
 
   private:
     char* name;				// for debugging
-	Thread *LockHoder;		// ³ÖÓÐËøµÄ½ø³Ì
-	List *LockQune;			// ×èÈû¶ÓÁÐ
-	//bool IsBusy;			// ËøÊÇ·ñbusy
+	Thread *LockHoder;		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿½ï¿½
+	Semaphore *sem;
+	Semaphore *inte;
+	//bool IsBusy;			// ï¿½ï¿½ï¿½Ç·ï¿½busy
     // plus some other stuff you'll need to define
 };
 
@@ -134,7 +135,7 @@ class Condition {
 
   private:
     char* name;
-	List *ConditionQueue;	//×èÈû¶ÓÁÐ
+	List *ConditionQueue;	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     // plus some other stuff you'll need to define
 };
 #endif // SYNCH_H

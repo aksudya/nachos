@@ -104,48 +104,46 @@ Lock::Lock(char* debugName)
 {
 	name = debugName;
 	LockHoder = NULL;
-	LockQune = new List;
+	sem = new Semaphore("LockSemaphore",1);
+	inte = new Semaphore("LockSemaphore",1);
 	//IsBusy = false;
 }
 
 Lock::~Lock()
 {
 	delete (LockHoder);
-	delete (LockQune);
+	delete (sem);
+	delete (inte);
 }
 
 void Lock::Acquire()
 {
-	IntStatus oldLevel = interrupt->SetLevel(IntOff);	//���ж�
+	inte->P();
 
 
 	ASSERT(!isHeldByCurrentThread());
 
-	while (LockHoder!=NULL)
-	{
-		LockQune->Append((void *)currentThread);
-		currentThread->Sleep();
-	}
+	sem->P();
+
 	LockHoder = currentThread;
 
 
-	(void)interrupt->SetLevel(oldLevel);	// re-enable interrupts
+	inte->V();
 }
 
 void Lock::Release()
 {
 	Thread *thread;
 
-	IntStatus oldLevel = interrupt->SetLevel(IntOff);
+	inte->P();
 
 	ASSERT(isHeldByCurrentThread());
 
-	thread = (Thread *)LockQune->Remove();
-	if (thread != NULL)	  
-		scheduler->ReadyToRun(thread);
+	sem->V();
+
 	LockHoder = NULL;
 
-	(void)interrupt->SetLevel(oldLevel);
+	inte->V();
 
 	
 }
