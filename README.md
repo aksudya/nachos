@@ -5,18 +5,37 @@
 实验二代码
 
 使用方法：编译后cd到threads目录下使用
+
+#### 1. Dllist实现的无限缓存的生产者消费者模型
+
 ```bash
-./nachos -m [T] [N]
+./nachos -rs [random seed] -m [producersnum] [consumersnum]
 ```
 
 例如
 ```bash
-./nachos -m 10 10 
+./nachos -rs 5 -m 10 10 
 ```
-即为开10个线程，每个线程在链表中插入和删除10个元素
+即为以5为种子进行随机中断，10个生产者进程，10个消费者进程
+
+#### 2. Table实现的生产者消费者模型(目前还有点小问题）
+
+```bash
+./nachos -rs [random seed] -a [producersnum] [consumersnum]
+```
+
+例如
+```bash
+./nachos -rs 5 -a 10 10 
+```
+即为以5为种子进行随机中断，10个生产者进程，10个消费者进程
 
 
 ### 2018/3/24 更新
 
 完成实验二第一部分：使用thread:sleep实现互斥并修改dlllist.cc进行了测试
 
+### 2018/3/27 更新
+完成实验二第一部分的使用信号量实现互斥;以及第二部分实现table
+
+并使用dllist建立了一个无限缓存的生产者消费者模型进行了测试
