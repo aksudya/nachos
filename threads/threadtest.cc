@@ -12,12 +12,19 @@
 #include "copyright.h"
 #include "system.h"
 #include "dllist.h"
+#include "Table.h"
 
+#define TABLESIZE 100000
 // testnum is set in main.cc
 int testnum = 1;
 int T=2;
 int N=2;
+
+int producersnum=2;
+int consumersnum=2;
+
 DLList *list;
+Table *table;
 
 void InsertList(int N, DLList *list);
 void RemoveList(int N, DLList *list);
@@ -41,25 +48,80 @@ SimpleThread(int which)
     }
 }
 
+
+
 void
-TestDllist(int which)
+TestTable_producer(int which)
 {
-	//printf("*** thread %d ***\n",which);
-	InsertList(N,list);
-	//currentThread->Yield();
-	//printf("*** thread %d ***\n",which);
-	RemoveList(N,list);
-	//printf("*** thread %d ***\n",which);
-	if(list->IsEmpty())
+
+	while (true)
 	{
-		printf("*** thread %d :empty ***\n",which);
-	}
-	else
-	{
-		printf("*** thread %d :not empty ***\n",which);
+		void *item;
+		int key = Random() % 100;		
+		int *items = new int[1];
+		items[0] = key;
+		item = items;		
+		printf("%s in:%d %d\n", currentThread->getName(), table->Alloc(item), *(int*)item);
+		//currentThread->Yield();
 	}
 
 }
+
+void
+TestTable_consumer(int which)
+{
+	while (true)
+	{
+		void *item;
+		int index;
+		for (int i = 0; i < TABLESIZE; ++i)
+		{
+			item = table->Get(i);
+			if(item != NULL)
+			{
+				index = i;
+				break;
+			}
+		}		
+		table->Release(index);
+		printf("%s out:%d %d\n", currentThread->getName(), index, *(int*)item);
+		//currentThread->Yield();
+	}
+}
+void
+TestDllist_producer(int which)
+{
+
+	while (true)
+	{
+		 void *item;
+		 int key=Random()%10;
+		 //int key=i;
+		 int *items=new int[1];
+		 items[0]=-key;
+		 item=items;
+		 printf("%s in:%d %d\n",currentThread->getName(),key,*(int*)item);
+		 //currentThread->Yield();
+		 list->SortedInsert(item,key);
+		 //currentThread->Yield();
+	}
+
+}
+
+void
+TestDllist_consumer(int which)
+{
+	while (true)
+	{
+		 int key;
+		 void *item;
+		 item=list->Remove(&key);
+		 printf("%s out:%d %d\n",currentThread->getName(),key,*(int*)item);
+	}
+}
+
+
+
 
 //----------------------------------------------------------------------
 // ThreadTest1
@@ -83,22 +145,68 @@ ThreadTest2()
 {
 	DEBUG('t', "Entering ThreadTest2 ");
 	list=new DLList();
-	for (int var = 0; var < T; var++)
+	for (int var = 0; var < producersnum; var++)
+		{
+			char No[4]="1";
+			sprintf(No, "%d", var);
+			//char name[18]="forked thread ";	//error
+			char *name=new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+			name[0]='\0';
+			strcat(name,"producer thread ");
+			strcat(name,No);
+
+			Thread *t = new Thread(name);
+			t->Fork(TestDllist_producer,var);
+		}
+		for (int var = 0; var < consumersnum; var++)
+		{
+			char No[4] = "1";
+			sprintf(No, "%d", var);
+			//char name[18]="forked thread ";	//error
+			char *name = new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+			name[0] = '\0';
+			strcat(name, "consumer thread ");
+			strcat(name, No);
+
+			Thread *t = new Thread(name);
+			t->Fork(TestDllist_consumer, var);
+		}
+}
+
+void
+ThreadTest3()
+{
+	DEBUG('t', "Entering ThreadTest3 ");
+	//list=new DLList();
+	table = new Table(TABLESIZE);
+	for (int var = 0; var < producersnum; var++)
 	{
 		char No[4]="1";
 		sprintf(No, "%d", var);
 		//char name[18]="forked thread ";	//error
 		char *name=new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
 		name[0]='\0';
-		strcat(name,"forked thread ");
+		strcat(name,"producer thread ");
 		strcat(name,No);
 
 		Thread *t = new Thread(name);
-		t->Fork(TestDllist,var);
-		//TestDllist(0);
+		t->Fork(TestTable_producer,var);
 	}
+	for (int var = 0; var < consumersnum; var++)
+	{
+		char No[4] = "1";
+		sprintf(No, "%d", var);
+		//char name[18]="forked thread ";	//error
+		char *name = new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+		name[0] = '\0';
+		strcat(name, "consumer thread ");
+		strcat(name, No);
 
+		Thread *t = new Thread(name);
+		t->Fork(TestTable_consumer, var);
+	}
 }
+
 
 //----------------------------------------------------------------------
 // ThreadTest
@@ -115,6 +223,9 @@ ThreadTest()
     case 2:
     ThreadTest2();
     break;
+	case 3:
+	ThreadTest3();
+	break;
     default:
 	printf("No test specified.\n");
 	break;

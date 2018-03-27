@@ -58,6 +58,8 @@
 extern int testnum;
 extern int T;
 extern int N;
+extern int producersnum;
+extern int consumersnum;
 #endif
 
 // External functions used by this file
@@ -103,10 +105,16 @@ main(int argc, char **argv)
         break;
       case 'm':
     	testnum = 2;
-    	T=atoi(argv[1]);
-    	N=atoi(argv[2]);
+    	producersnum=atoi(argv[1]);
+    	consumersnum=atoi(argv[2]);
     	argCount+=3;
     	break;
+	  case 'a':
+		  testnum = 3;
+		  producersnum=atoi(argv[1]);
+		  consumersnum=atoi(argv[2]);
+		  argCount += 3;
+		  break;
       default:
         testnum = 1;
         break;
