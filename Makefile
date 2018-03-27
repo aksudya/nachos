@@ -5,6 +5,7 @@
 MAKE = gmake
 LPR = lpr
 
+
 all: 
 	cd threads; $(MAKE) depend
 	cd threads; $(MAKE) nachos
