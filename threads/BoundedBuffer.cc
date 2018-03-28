@@ -27,8 +27,11 @@ void BoundedBuffer::Write(void* data, int size)
 	{
 		NotFull->Wait(lock);
 	}
-	void *ptr = buffer + FrontPlace;
-	ptr = data;
+
+	for(int i=0;i<size;i++)
+	{
+		*((char*)buffer+(FrontPlace+i)%maxsize)=*((char*)data+i);
+	}
 	FrontPlace = (FrontPlace + size) % maxsize;
 	UsedSize += size;
 	NotEmpty->Signal(lock);
@@ -42,9 +45,12 @@ void BoundedBuffer::Read(void* data, int size)
 	{
 		NotEmpty->Wait(lock);
 	}
-	void *ptr = buffer + BackPlace;
-	data = ptr;
-	BackPlace = (FrontPlace + size) % maxsize;
+
+	for(int i=0;i<size;i++)
+	{
+		*((char*)data+i)=*((char*)buffer+(BackPlace+i)%maxsize);
+	}
+	BackPlace = (BackPlace + size) % maxsize;
 	UsedSize -= size;
 	NotFull->Signal(lock);
 	lock->Release();

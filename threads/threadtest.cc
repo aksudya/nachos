@@ -16,7 +16,7 @@
 #include "BoundedBuffer.h"
 
 #define TABLESIZE 100000
-#define BOUNDEDBUFFERSIZE 10000
+#define BOUNDEDBUFFERSIZE 1000
 // testnum is set in main.cc
 int testnum = 1;
 int T=2;
@@ -129,8 +129,7 @@ TestBuffer_producer(int which)
 
 	while (true)
 	{
-		void *item;
-		int size = Random() % 26;
+		int size = Random() % 20+1;
 		//int key=i;
 		char *items = new char[size+1];
 		for (int i = 0; i < size; ++i)
@@ -138,9 +137,10 @@ TestBuffer_producer(int which)
 			items[i] = 65 + i;
 		}
 		items[size] = '\0';
-		printf("%s in:%s size:%d\n", currentThread->getName(), *(char*)items,size );
-		//currentThread->Yield();
 		boundedbuffer->Write(items, size);
+		printf("%s in:%s\n size:%d usedsize:%d\n", currentThread->getName(), items,size,boundedbuffer->UsedSize );
+		//currentThread->Yield();
+
 		//currentThread->Yield();
 	}
 
@@ -151,12 +151,11 @@ TestBuffer_consumer(int which)
 {
 	while (true)
 	{
-		int key;		
-		int size= Random() % 10;
+		int size= Random() % 10+1;
 		char *item= new char[size + 1];
 		boundedbuffer->Read(item, size);
 		item[size] = '\0';
-		printf("%s out:%s size:%d\n", currentThread->getName(),  *(char*)item,size);
+		printf("%s out:%s\n size:%d usedsize:%d\n", currentThread->getName(),  (char*)item,size,boundedbuffer->UsedSize);
 	}
 }
 
@@ -261,7 +260,7 @@ ThreadTest4()
 		strcat(name, No);
 
 		Thread *t = new Thread(name);
-		t->Fork(TestTable_producer, var);
+		t->Fork(TestBuffer_producer, var);
 	}
 	for (int var = 0; var < consumersnum; var++)
 	{
@@ -274,7 +273,7 @@ ThreadTest4()
 		strcat(name, No);
 
 		Thread *t = new Thread(name);
-		t->Fork(TestTable_consumer, var);
+		t->Fork(TestBuffer_consumer, var);
 	}
 }
 

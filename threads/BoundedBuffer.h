@@ -13,13 +13,13 @@ class BoundedBuffer {
      // write 'size' bytes from 'data' into the bounded buffer.
      // ('size' may be greater than 'maxsize')
      void Write(void *data, int size);
-     
+     int UsedSize;					//buffer已被使用的大小
     
    private:
 	void *buffer;
     int maxsize;   
 	int FrontPlace,BackPlace;		//标志被填充数据区域的前后位置
-	int UsedSize;					//buffer已被使用的大小 
+
 	Lock *lock;
 	Condition *NotFull, *NotEmpty;
 };
