@@ -187,7 +187,7 @@ ThreadTest2()
 			char No[4]="1";
 			sprintf(No, "%d", var);
 			//char name[18]="forked thread ";	//error
-			char *name=new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+			char *name=new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址 
 			name[0]='\0';
 			strcat(name,"producer thread ");
 			strcat(name,No);

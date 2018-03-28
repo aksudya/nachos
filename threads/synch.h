@@ -86,7 +86,7 @@ class Lock {
     char* name;				// for debugging
 	Thread *LockHoder;		// 持有锁的进程
 	Semaphore *sem;			// 信号量
-	Semaphore *inte;		// 用来替代开关中断
+	Semaphore *inte;		// 用来替代开关中断 
 	
     // plus some other stuff you'll need to define
 };
@@ -164,9 +164,9 @@ class Lock {
 
   private:
     char* name;				// for debugging
-	Thread *LockHoder;		// �������Ľ���
-	List *LockQune;			// ��������
-	//bool IsBusy;			// ���Ƿ�busy
+	Thread *LockHoder;		
+	List *LockQune;			
+	//bool IsBusy;			
     // plus some other stuff you'll need to define
 };
 
@@ -219,7 +219,7 @@ class Condition {
 
   private:
     char* name;
-	List *ConditionQueue;	//��������
+	List *ConditionQueue;	
     // plus some other stuff you'll need to define
 };
 #endif

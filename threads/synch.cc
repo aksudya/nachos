@@ -119,7 +119,7 @@ Lock::~Lock()
 
 void Lock::Acquire()
 {
-	//inte->P();		// 用来替代关中断  	????
+	//inte->P();		// 用来替代关中断  	
 
 	ASSERT(!isHeldByCurrentThread());
 
@@ -229,7 +229,7 @@ Lock::~Lock()
 
 void Lock::Acquire()
 {
-	IntStatus oldLevel = interrupt->SetLevel(IntOff);	//���ж�
+	IntStatus oldLevel = interrupt->SetLevel(IntOff);	
 
 
 	ASSERT(!isHeldByCurrentThread());

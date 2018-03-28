@@ -18,8 +18,8 @@ class BoundedBuffer {
    private:
 	void *buffer;
     int maxsize;   
-	int FrontPlace,BackPlace;		//±êÖ¾±»Ìî³äÊı¾İÇøÓòµÄÇ°ºóÎ»ÖÃ
-	int UsedSize;					//bufferÒÑ±»Ê¹ÓÃµÄ´óĞ¡
+	int FrontPlace,BackPlace;		//æ ‡å¿—è¢«å¡«å……æ•°æ®åŒºåŸŸçš„å‰åä½ç½®
+	int UsedSize;					//bufferå·²è¢«ä½¿ç”¨çš„å¤§å° 
 	Lock *lock;
 	Condition *NotFull, *NotEmpty;
 };
