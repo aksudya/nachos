@@ -13,8 +13,10 @@
 #include "system.h"
 #include "dllist.h"
 #include "Table.h"
+#include "BoundedBuffer.h"
 
 #define TABLESIZE 100000
+#define BOUNDEDBUFFERSIZE 10000
 // testnum is set in main.cc
 int testnum = 1;
 int T=2;
@@ -25,6 +27,7 @@ int consumersnum=2;
 
 DLList *list;
 Table *table;
+BoundedBuffer *boundedbuffer;
 
 void InsertList(int N, DLList *list);
 void RemoveList(int N, DLList *list);
@@ -120,8 +123,42 @@ TestDllist_consumer(int which)
 	}
 }
 
+void
+TestBuffer_producer(int which)
+{
 
+	while (true)
+	{
+		void *item;
+		int size = Random() % 26;
+		//int key=i;
+		char *items = new char[size+1];
+		for (int i = 0; i < size; ++i)
+		{
+			items[i] = 65 + i;
+		}
+		items[size] = '\0';
+		printf("%s in:%s size:%d\n", currentThread->getName(), *(char*)items,size );
+		//currentThread->Yield();
+		boundedbuffer->Write(items, size);
+		//currentThread->Yield();
+	}
 
+}
+
+void
+TestBuffer_consumer(int which)
+{
+	while (true)
+	{
+		int key;		
+		int size= Random() % 10;
+		char *item= new char[size + 1];
+		boundedbuffer->Read(item, size);
+		item[size] = '\0';
+		printf("%s out:%s size:%d\n", currentThread->getName(),  *(char*)item,size);
+	}
+}
 
 //----------------------------------------------------------------------
 // ThreadTest1
@@ -207,6 +244,39 @@ ThreadTest3()
 	}
 }
 
+void
+ThreadTest4()
+{
+	DEBUG('t', "Entering ThreadTest4 ");
+	//list=new DLList();
+	boundedbuffer = new BoundedBuffer(BOUNDEDBUFFERSIZE);
+	for (int var = 0; var < producersnum; var++)
+	{
+		char No[4] = "1";
+		sprintf(No, "%d", var);
+		//char name[18]="forked thread ";	//error
+		char *name = new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+		name[0] = '\0';
+		strcat(name, "producer thread ");
+		strcat(name, No);
+
+		Thread *t = new Thread(name);
+		t->Fork(TestTable_producer, var);
+	}
+	for (int var = 0; var < consumersnum; var++)
+	{
+		char No[4] = "1";
+		sprintf(No, "%d", var);
+		//char name[18]="forked thread ";	//error
+		char *name = new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+		name[0] = '\0';
+		strcat(name, "consumer thread ");
+		strcat(name, No);
+
+		Thread *t = new Thread(name);
+		t->Fork(TestTable_consumer, var);
+	}
+}
 
 //----------------------------------------------------------------------
 // ThreadTest
@@ -225,6 +295,9 @@ ThreadTest()
     break;
 	case 3:
 	ThreadTest3();
+	break;
+	case 4:
+	ThreadTest4();
 	break;
     default:
 	printf("No test specified.\n");
