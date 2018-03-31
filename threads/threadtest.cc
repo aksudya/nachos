@@ -184,7 +184,7 @@ TestBuffer_producer_1(int which)
 		items[size] = '\0';
 		boundedbuffer->Write(items, size);
 		printf("%s in:%s\n size:%d usedsize:%d\n", currentThread->getName(), items, size, boundedbuffer->UsedSize);
-		//currentThread->Yield();
+		currentThread->Yield();
 
 		//currentThread->Yield();
 	}
@@ -194,7 +194,7 @@ TestBuffer_producer_1(int which)
 void
 TestBuffer_consumer_1(int which)
 {
-	for (int i = 0; i < 5; ++i)
+	for (int i = 0; i < 10; ++i)
 	{
 		//int size = Random() % 10 + 1;
 		int size = 1;
@@ -202,6 +202,7 @@ TestBuffer_consumer_1(int which)
 		boundedbuffer->Read(item, size);
 		item[size] = '\0';
 		printf("%s out:%s\n size:%d usedsize:%d\n", currentThread->getName(), (char*)item, size, boundedbuffer->UsedSize);
+		currentThread->Yield();
 	}
 }
 //----------------------------------------------------------------------
@@ -337,11 +338,19 @@ ThreadTest5()
 		name[0] = '\0';
 		strcat(name, "producer thread ");
 		strcat(name, No);
+		if(var==0)
+		{
+			Thread *t = new Thread(name,1);
+			t->Fork(TestBuffer_producer_1, var);
+		}
+		else if(var==1)
+		{
+			Thread *t = new Thread(name,0);
+			t->Fork(TestBuffer_producer_1, var);
+		}
 
-		Thread *t = new Thread(name);
-		t->Fork(TestBuffer_producer, var);
 	}
-	for (int var = 0; var < 4; var++)
+	for (int var = 0; var < 1; var++)
 	{
 		char No[4] = "1";
 		sprintf(No, "%d", var);
@@ -352,7 +361,7 @@ ThreadTest5()
 		strcat(name, No);
 
 		Thread *t = new Thread(name,1);
-		t->Fork(TestBuffer_consumer, var);
+		t->Fork(TestBuffer_consumer_1, var);
 	}
 }
 
@@ -377,6 +386,9 @@ ThreadTest()
 	case 4:
 	ThreadTest4();
 	break;
+	case 5:
+		ThreadTest5();
+		break;
     default:
 	printf("No test specified.\n");
 	break;
