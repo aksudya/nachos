@@ -136,6 +136,10 @@ TestBuffer_producer(int which)
 		{
 			items[i] = 65 + i;
 		}
+
+		//int size = 1;
+		//char *items = new char[size + 1];
+		//items[0]= Random() % 20 + 1+65;
 		items[size] = '\0';
 		boundedbuffer->Write(items, size);
 		printf("%s in:%s\n size:%d usedsize:%d\n", currentThread->getName(), items,size,boundedbuffer->UsedSize );
@@ -152,6 +156,7 @@ TestBuffer_consumer(int which)
 	while (true)
 	{
 		int size= Random() % 10+1;
+		//int size = 1;
 		char *item= new char[size + 1];
 		boundedbuffer->Read(item, size);
 		item[size] = '\0';
@@ -159,6 +164,46 @@ TestBuffer_consumer(int which)
 	}
 }
 
+void
+TestBuffer_producer_1(int which)
+{
+
+	for (int i = 0; i < 5; ++i)
+	{
+		//int size = Random() % 20 + 1;
+		////int key=i;
+		//char *items = new char[size + 1];
+		//for (int i = 0; i < size; ++i)
+		//{
+		//	items[i] = 65 + i;
+		//}
+
+		int size = 1;
+		char *items = new char[size + 1];
+		items[0]= Random() % 20 + 1+65;
+		items[size] = '\0';
+		boundedbuffer->Write(items, size);
+		printf("%s in:%s\n size:%d usedsize:%d\n", currentThread->getName(), items, size, boundedbuffer->UsedSize);
+		//currentThread->Yield();
+
+		//currentThread->Yield();
+	}
+
+}
+
+void
+TestBuffer_consumer_1(int which)
+{
+	for (int i = 0; i < 5; ++i)
+	{
+		//int size = Random() % 10 + 1;
+		int size = 1;
+		char *item = new char[size + 1];
+		boundedbuffer->Read(item, size);
+		item[size] = '\0';
+		printf("%s out:%s\n size:%d usedsize:%d\n", currentThread->getName(), (char*)item, size, boundedbuffer->UsedSize);
+	}
+}
 //----------------------------------------------------------------------
 // ThreadTest1
 // 	Set up a ping-pong between two threads, by forking a thread 
@@ -273,6 +318,40 @@ ThreadTest4()
 		strcat(name, No);
 
 		Thread *t = new Thread(name);
+		t->Fork(TestBuffer_consumer, var);
+	}
+}
+
+void
+ThreadTest5()
+{
+	DEBUG('t', "Entering ThreadTest5 ");
+	//list=new DLList();
+	boundedbuffer = new BoundedBuffer(BOUNDEDBUFFERSIZE);
+	for (int var = 0; var < 2; var++)
+	{
+		char No[4] = "1";
+		sprintf(No, "%d", var);
+		//char name[18]="forked thread ";	//error
+		char *name = new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+		name[0] = '\0';
+		strcat(name, "producer thread ");
+		strcat(name, No);
+
+		Thread *t = new Thread(name);
+		t->Fork(TestBuffer_producer, var);
+	}
+	for (int var = 0; var < 4; var++)
+	{
+		char No[4] = "1";
+		sprintf(No, "%d", var);
+		//char name[18]="forked thread ";	//error
+		char *name = new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+		name[0] = '\0';
+		strcat(name, "consumer thread ");
+		strcat(name, No);
+
+		Thread *t = new Thread(name,1);
 		t->Fork(TestBuffer_consumer, var);
 	}
 }
