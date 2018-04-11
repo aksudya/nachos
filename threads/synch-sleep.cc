@@ -67,8 +67,7 @@ Semaphore::P()
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
     
     while (value == 0) { 			// semaphore not available
-	//queue->Append((void *)currentThread);	// so go to sleep
-	queue->SortedInsert((void *)currentThread, currentThread->getpriority());	// so go to sleep
+	queue->Append((void *)currentThread);	// so go to sleep
 	currentThread->Sleep();
     } 
     value--; 					// semaphore available, 
@@ -98,122 +97,9 @@ Semaphore::V()
     (void) interrupt->SetLevel(oldLevel);
 }
 
-
-#ifdef SEM_VERSION
 // Dummy functions -- so we can compile our later assignments 
 // Note -- without a correct implementation of Condition::Wait(), 
 // the test case in the network assignment won't work!
-Lock::Lock(char* debugName)
-{
-	name = debugName;
-	LockHoder = NULL;
-	sem = new Semaphore("LockSemaphore",1);
-	inte = new Semaphore("InterruptSemaphore", 1);
-}
-
-Lock::~Lock()
-{
-	delete (LockHoder);
-	delete (sem);
-	delete (inte);
-}
-
-void Lock::Acquire()
-{
-	//inte->P();		// 用来替代关中断  	
-
-	ASSERT(!isHeldByCurrentThread());
-
-	sem->P();
-
-	LockHoder = currentThread;
-
-
-	//inte->V();		// 用来替代开中断
-}
-
-void Lock::Release()
-{
-
-	inte->P();
-
-	ASSERT(isHeldByCurrentThread());
-	
-	LockHoder = NULL;
-	//currentThread->Yield();
-	sem->V();
-	
-
-	inte->V();
-
-
-	
-}
-
-bool Lock::isHeldByCurrentThread()
-{
-	return currentThread == LockHoder;
-}
-
-Condition::Condition(char* debugName)
-{
-	name = debugName;
-	sem = new Semaphore("LockSemaphore", 1);
-	inte = new Semaphore("InterruptSemaphore", 1);
-	blockNum = 0;
-}
-
-Condition::~Condition()
-{
-	delete (inte);
-	delete (sem);
-}
-void Condition::Wait(Lock* conditionLock)
-{
-	
-	//inte->P();
-
-	ASSERT(conditionLock->isHeldByCurrentThread());
-	conditionLock->Release();
-	blockNum++;
-	//currentThread->Yield();
-	sem->P();
-	conditionLock->Acquire();
-
-	//inte->V();
-}
-
-void Condition::Signal(Lock* conditionLock)
-{
-	//inte->P();
-
-	ASSERT(conditionLock->isHeldByCurrentThread());
-
-	if(blockNum>0)		//防止wait之前调用signal导致的累积
-	{
-		blockNum--;
-		sem->V();
-	}
-
-	//inte->V();
-}
-
-void Condition::Broadcast(Lock* conditionLock)
-{
-	//inte->P();
-	ASSERT(conditionLock->isHeldByCurrentThread());
-
-	while (blockNum>0)
-	{
-		blockNum--;
-		sem->V();
-	}
-
-	//inte->V();
-}
-#endif
-
-#ifdef SLEEP_VERSION
 Lock::Lock(char* debugName)
 {
 	name = debugName;
@@ -230,14 +116,14 @@ Lock::~Lock()
 
 void Lock::Acquire()
 {
-	IntStatus oldLevel = interrupt->SetLevel(IntOff);	
+	IntStatus oldLevel = interrupt->SetLevel(IntOff);	//���ж�
 
 
 	ASSERT(!isHeldByCurrentThread());
 
 	while (LockHoder!=NULL)
 	{
-		queue->SortedInsert((void *)currentThread, currentThread->getpriority());	// so go to sleep
+		LockQune->Append((void *)currentThread);
 		currentThread->Sleep();
 	}
 	LockHoder = currentThread;
@@ -255,13 +141,13 @@ void Lock::Release()
 	ASSERT(isHeldByCurrentThread());
 
 	thread = (Thread *)LockQune->Remove();
-	if (thread != NULL)
+	if (thread != NULL)	  
 		scheduler->ReadyToRun(thread);
 	LockHoder = NULL;
 
 	(void)interrupt->SetLevel(oldLevel);
 
-
+	
 }
 
 bool Lock::isHeldByCurrentThread()
@@ -286,7 +172,7 @@ void Condition::Wait(Lock* conditionLock)
 	//ASSERT(FALSE);
 
 	conditionLock->Release();
-	queue->SortedInsert((void *)currentThread, currentThread->getpriority());	// so go to sleep
+	ConditionQueue->Append((void *)currentThread);
 	currentThread->Sleep();
 
 	conditionLock->Acquire();
@@ -324,4 +210,3 @@ void Condition::Broadcast(Lock* conditionLock)
 
 	(void)interrupt->SetLevel(oldLevel);
 }
-#endif

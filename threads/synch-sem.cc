@@ -67,8 +67,7 @@ Semaphore::P()
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
     
     while (value == 0) { 			// semaphore not available
-	//queue->Append((void *)currentThread);	// so go to sleep
-	queue->SortedInsert((void *)currentThread, currentThread->getpriority());	// so go to sleep
+	queue->Append((void *)currentThread);	// so go to sleep
 	currentThread->Sleep();
     } 
     value--; 					// semaphore available, 
@@ -98,8 +97,6 @@ Semaphore::V()
     (void) interrupt->SetLevel(oldLevel);
 }
 
-
-#ifdef SEM_VERSION
 // Dummy functions -- so we can compile our later assignments 
 // Note -- without a correct implementation of Condition::Wait(), 
 // the test case in the network assignment won't work!
@@ -120,7 +117,7 @@ Lock::~Lock()
 
 void Lock::Acquire()
 {
-	//inte->P();		// 用来替代关中断  	
+	//inte->P();		// 用来替代关中断
 
 	ASSERT(!isHeldByCurrentThread());
 
@@ -135,17 +132,15 @@ void Lock::Acquire()
 void Lock::Release()
 {
 
-	inte->P();
+	//inte->P();
 
 	ASSERT(isHeldByCurrentThread());
 	
 	LockHoder = NULL;
-	//currentThread->Yield();
+
 	sem->V();
 	
-
-	inte->V();
-
+	//inte->V();
 
 	
 }
@@ -171,21 +166,20 @@ Condition::~Condition()
 void Condition::Wait(Lock* conditionLock)
 {
 	
-	//inte->P();
+	inte->P();
 
 	ASSERT(conditionLock->isHeldByCurrentThread());
 	conditionLock->Release();
 	blockNum++;
-	//currentThread->Yield();
 	sem->P();
 	conditionLock->Acquire();
 
-	//inte->V();
+	inte->V();
 }
 
 void Condition::Signal(Lock* conditionLock)
 {
-	//inte->P();
+	inte->P();
 
 	ASSERT(conditionLock->isHeldByCurrentThread());
 
@@ -195,12 +189,12 @@ void Condition::Signal(Lock* conditionLock)
 		sem->V();
 	}
 
-	//inte->V();
+	inte->V();
 }
 
 void Condition::Broadcast(Lock* conditionLock)
 {
-	//inte->P();
+	inte->P();
 	ASSERT(conditionLock->isHeldByCurrentThread());
 
 	while (blockNum>0)
@@ -209,119 +203,5 @@ void Condition::Broadcast(Lock* conditionLock)
 		sem->V();
 	}
 
-	//inte->V();
+	inte->V();
 }
-#endif
-
-#ifdef SLEEP_VERSION
-Lock::Lock(char* debugName)
-{
-	name = debugName;
-	LockHoder = NULL;
-	LockQune = new List;
-	//IsBusy = false;
-}
-
-Lock::~Lock()
-{
-	delete (LockHoder);
-	delete (LockQune);
-}
-
-void Lock::Acquire()
-{
-	IntStatus oldLevel = interrupt->SetLevel(IntOff);	
-
-
-	ASSERT(!isHeldByCurrentThread());
-
-	while (LockHoder!=NULL)
-	{
-		queue->SortedInsert((void *)currentThread, currentThread->getpriority());	// so go to sleep
-		currentThread->Sleep();
-	}
-	LockHoder = currentThread;
-
-
-	(void)interrupt->SetLevel(oldLevel);	// re-enable interrupts
-}
-
-void Lock::Release()
-{
-	Thread *thread;
-
-	IntStatus oldLevel = interrupt->SetLevel(IntOff);
-
-	ASSERT(isHeldByCurrentThread());
-
-	thread = (Thread *)LockQune->Remove();
-	if (thread != NULL)
-		scheduler->ReadyToRun(thread);
-	LockHoder = NULL;
-
-	(void)interrupt->SetLevel(oldLevel);
-
-
-}
-
-bool Lock::isHeldByCurrentThread()
-{
-	return currentThread == LockHoder;
-}
-
-Condition::Condition(char* debugName)
-{
-	name = debugName;
-	ConditionQueue = new List;
-}
-
-Condition::~Condition()
-{
-	delete (ConditionQueue);
-}
-void Condition::Wait(Lock* conditionLock)
-{
-	IntStatus oldLevel = interrupt->SetLevel(IntOff);
-
-	//ASSERT(FALSE);
-
-	conditionLock->Release();
-	queue->SortedInsert((void *)currentThread, currentThread->getpriority());	// so go to sleep
-	currentThread->Sleep();
-
-	conditionLock->Acquire();
-
-	(void)interrupt->SetLevel(oldLevel);	// re-enable interrupts
-}
-
-void Condition::Signal(Lock* conditionLock)
-{
-
-	Thread *thread;
-	IntStatus oldLevel = interrupt->SetLevel(IntOff);
-	ASSERT(conditionLock->isHeldByCurrentThread());
-
-	thread = (Thread *)ConditionQueue->Remove();
-	if (thread != NULL)
-		scheduler->ReadyToRun(thread);
-	//LockHoder = NULL;
-
-	(void)interrupt->SetLevel(oldLevel);
-}
-
-void Condition::Broadcast(Lock* conditionLock)
-{
-	Thread *thread;
-	IntStatus oldLevel = interrupt->SetLevel(IntOff);
-	ASSERT(conditionLock->isHeldByCurrentThread());
-
-	while (!ConditionQueue->IsEmpty())
-	{
-		thread = (Thread *)ConditionQueue->Remove();
-		if (thread != NULL)
-			scheduler->ReadyToRun(thread);
-	}
-
-	(void)interrupt->SetLevel(oldLevel);
-}
-#endif

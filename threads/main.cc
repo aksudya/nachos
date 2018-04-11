@@ -58,6 +58,8 @@
 extern int testnum;
 extern int T;
 extern int N;
+extern int producersnum;
+extern int consumersnum;
 #endif
 
 // External functions used by this file
@@ -65,7 +67,7 @@ extern int N;
 extern void ThreadTest(void), Copy(char *unixFile, char *nachosFile);
 extern void Print(char *file), PerformanceTest(void);
 extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
-extern void MailTest(int networkID);
+extern void MailTest(int networkID); 
 
 //----------------------------------------------------------------------
 // main
@@ -103,10 +105,28 @@ main(int argc, char **argv)
         break;
       case 'm':
     	testnum = 2;
-    	T=atoi(argv[1]);
-    	N=atoi(argv[2]);
+    	producersnum=atoi(argv[1]);
+    	consumersnum=atoi(argv[2]);
     	argCount+=3;
     	break;
+	  case 'a':
+		  testnum = 3;
+		  producersnum=atoi(argv[1]);
+		  consumersnum=atoi(argv[2]);
+		  argCount += 3;
+		  break;
+	  case 'b':
+		  testnum = 4;
+		  producersnum = atoi(argv[1]);
+		  consumersnum = atoi(argv[2]);
+		  argCount += 3;
+		  break;
+	  case 'i':
+	  		  testnum = 5;
+	  		  //producersnum = atoi(argv[1]);
+	  		  //consumersnum = atoi(argv[2]);
+	  		  argCount += 3;
+	  		  break;
       default:
         testnum = 1;
         break;
