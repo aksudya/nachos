@@ -4,6 +4,10 @@
 
 实验二代码
 
+此处版本包括实验二附加题
+
+[不包括附加题的版本](https://github.com/aksudya/nachos/tree/a062b3aa5994e5e0ccb91331e23af3ff3ebdcfe4)
+
 使用方法：编译后cd到threads目录下使用
 
 #### 1. Dllist实现的无限缓存的生产者消费者模型
