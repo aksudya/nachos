@@ -6,6 +6,8 @@
 
 [lab2分支](https://github.com/aksudya/nachos/tree/lab2)为实验二代码
 
+[lab3分支](https://github.com/aksudya/nachos/tree/lab3)为实验三代码
+
 此代码为code文件夹中的内容
 
 因为存在符号链接的问题，直接下载后替换code文件夹中的内容可能会导致编译错误。
