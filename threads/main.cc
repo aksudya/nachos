@@ -121,6 +121,12 @@ main(int argc, char **argv)
 		  consumersnum = atoi(argv[2]);
 		  argCount += 3;
 		  break;
+	  case 'e':
+		  testnum = 5;
+		  producersnum = atoi(argv[1]);
+		  consumersnum = atoi(argv[2]);
+		  argCount += 3;
+		  break;
       default:
         testnum = 1;
         break;

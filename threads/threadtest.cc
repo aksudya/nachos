@@ -14,6 +14,7 @@
 #include "dllist.h"
 #include "Table.h"
 #include "BoundedBuffer.h"
+#include "EventBarrier.h"
 
 #define TABLESIZE 100000
 #define BOUNDEDBUFFERSIZE 1000
@@ -28,6 +29,7 @@ int consumersnum=2;
 DLList *list;
 Table *table;
 BoundedBuffer *boundedbuffer;
+EventBarrier *barrier;
 
 void InsertList(int N, DLList *list);
 void RemoveList(int N, DLList *list);
@@ -159,6 +161,28 @@ TestBuffer_consumer(int which)
 	}
 }
 
+void
+TestEventBarrier_runing(int whitch)
+{
+	barrier->Wait();
+	for (int i = 0; i < 100; ++i)
+	{
+		for (int i = 0; i < 100; ++i)
+		{
+			//thread runing;
+		}
+	}	
+	barrier->Complete();
+	printf("%s complete\n", currentThread->getName());
+	printf("waiters:%d\n", barrier->Waiters());
+}
+
+void
+TestEventBarrier_signal(int whitch)
+{
+	printf("----%s signaled-----\n", currentThread->getName());
+	barrier->Signal();
+}
 //----------------------------------------------------------------------
 // ThreadTest1
 // 	Set up a ping-pong between two threads, by forking a thread 
@@ -277,6 +301,21 @@ ThreadTest4()
 	}
 }
 
+void
+ThreadTest5()
+{
+
+	Thread *tthread[4];
+	barrier = new EventBarrier();
+	tthread[0] = new Thread("thread 0");
+	tthread[1] = new Thread("thread 1");
+	tthread[0]->Fork(TestEventBarrier_runing, 0);
+	tthread[1]->Fork(TestEventBarrier_runing, 1);
+
+	tthread[2] = new Thread("thread 2");
+	tthread[2]->Fork(TestEventBarrier_signal, 2);
+}
+
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
@@ -296,6 +335,9 @@ ThreadTest()
 	ThreadTest3();
 	break;
 	case 4:
+	ThreadTest4();
+	break;
+	case 5:
 	ThreadTest4();
 	break;
     default:
