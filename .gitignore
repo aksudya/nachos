@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+*.s
+bin/coff2noff
+*/nachos

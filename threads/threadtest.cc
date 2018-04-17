@@ -165,15 +165,19 @@ void
 TestEventBarrier_runing(int whitch)
 {
 	barrier->Wait();
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < 1000; ++i)
 	{
-		for (int i = 0; i < 100; ++i)
+		for (int i = 0; i < 1000; ++i)
 		{
-			//thread runing;
+			currentThread->Yield();
+//thread runing;
 		}
-	}	
+	}
+    printf("%s complete\n", currentThread->getName());
+    printf("waiters:%d\n", barrier->Waiters());
+    
 	barrier->Complete();
-	printf("%s complete\n", currentThread->getName());
+	printf("%s finished\n", currentThread->getName());
 	printf("waiters:%d\n", barrier->Waiters());
 }
 
@@ -338,7 +342,7 @@ ThreadTest()
 	ThreadTest4();
 	break;
 	case 5:
-	ThreadTest4();
+	ThreadTest5();
 	break;
     default:
 	printf("No test specified.\n");
