@@ -15,6 +15,7 @@
 #include "Table.h"
 #include "BoundedBuffer.h"
 #include "EventBarrier.h"
+#include "Alarm.h"
 
 #define TABLESIZE 100000
 #define BOUNDEDBUFFERSIZE 1000
@@ -30,6 +31,7 @@ DLList *list;
 Table *table;
 BoundedBuffer *boundedbuffer;
 EventBarrier *barrier;
+Alarm *alarm;
 
 void InsertList(int N, DLList *list);
 void RemoveList(int N, DLList *list);
@@ -321,6 +323,41 @@ ThreadTest5()
 }
 
 //----------------------------------------------------------------------
+//test alarm
+//----------------------------------------------------------------------
+
+void TestAlarm(int time)
+{
+	printf("set %s %d", currentThread->getName(), time);
+	alarm->Pause(time);
+}
+
+void Loop(int which)
+{
+	while (true)
+	{
+		currentThread->Yield();
+	}
+}
+
+void
+ThreadTest6()
+{
+
+	Thread *tthread[4];
+	alarm = new Alarm;
+	tthread[0] = new Thread("thread 0");
+	tthread[1] = new Thread("thread 1");
+	tthread[0]->Fork(TestAlarm, 1000);
+	tthread[1]->Fork(TestAlarm, 2000);
+
+	tthread[2] = new Thread("thread 2");
+	tthread[2]->Fork(Loop, 3);
+
+}
+
+
+//----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
 //----------------------------------------------------------------------
@@ -342,6 +379,9 @@ ThreadTest()
 	ThreadTest4();
 	break;
 	case 5:
+	ThreadTest5();
+	break;
+	case 6:
 	ThreadTest5();
 	break;
     default:

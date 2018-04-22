@@ -123,10 +123,13 @@ main(int argc, char **argv)
 		  break;
 	  case 'e':
 		  testnum = 5;
-		  producersnum = atoi(argv[1]);
-		  consumersnum = atoi(argv[2]);
-		  argCount += 3;
+		  //producersnum = atoi(argv[1]);
+		  //consumersnum = atoi(argv[2]);
+		  argCount ++;
 		  break;
+	  case 'g':
+		  testnum = 6;
+		  argCount++;
       default:
         testnum = 1;
         break;
