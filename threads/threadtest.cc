@@ -328,7 +328,7 @@ ThreadTest5()
 
 void TestAlarm(int time)
 {
-	printf("set %s %d", currentThread->getName(), time);
+	printf("set %s %d\n", currentThread->getName(), time);
 	alarm->Pause(time);
 }
 
@@ -348,7 +348,7 @@ ThreadTest6()
 	alarm = new Alarm;
 	tthread[0] = new Thread("thread 0");
 	tthread[1] = new Thread("thread 1");
-	tthread[0]->Fork(TestAlarm, 10000);
+	tthread[0]->Fork(TestAlarm, 10000000);
 	tthread[1]->Fork(TestAlarm, 20000);
 
 	tthread[2] = new Thread("thread 2");

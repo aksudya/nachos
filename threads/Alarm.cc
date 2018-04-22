@@ -38,7 +38,7 @@ void timerhandler(int dummy)		//dummy 仅为占位，不需要用到这个参数
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	//必须关中断
 
 	thread = (Thread *)alarm->queue->Remove(&duetime);
-	while (thread!= NULL)
+	if (thread!= NULL)
 	{
 		if (duetime - stats->totalTicks <= 0)
 		{
@@ -48,9 +48,9 @@ void timerhandler(int dummy)		//dummy 仅为占位，不需要用到这个参数
 		}
 		else
 		{
-			queue->SortedInsert((void *)thread,duetime);
+			alarm->queue->SortedInsert((void *)thread,duetime);
 			printf("%d Ticks remains\n%d threads remains\n\n",
-				stats->totalTicks - duetime, alarm->waiters);
+				duetime-stats->totalTicks, alarm->waiters);
 		}
 	}
 
