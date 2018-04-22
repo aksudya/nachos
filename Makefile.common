@@ -49,6 +49,7 @@ THREAD_H =../threads/copyright.h\
 	../threads/Table.h\
 	../threads/BoundedBuffer.h\
 	../threads/EventBarrier.h\
+	../threads/Alarm.h\
 	../machine/interrupt.h\
 	../machine/sysdep.h\
 	../machine/stats.h\
@@ -68,6 +69,7 @@ THREAD_C =../threads/main.cc\
 	../threads/Table.cc\
 	../threads/BoundedBuffer.cc\
 	../threads/EventBarrier.cc\
+	../threads/Alarm.cc\
 	../machine/interrupt.cc\
 	../machine/sysdep.cc\
 	../machine/stats.cc\
@@ -77,7 +79,7 @@ THREAD_S = ../threads/switch.s
 
 THREAD_O =main.o list.o scheduler.o synch.o synchlist.o system.o thread.o \
 	utility.o threadtest.o interrupt.o stats.o sysdep.o timer.o dllist.o dllist-driver.o \
-	Table.o BoundedBuffer.o EventBarrier.o
+	Table.o BoundedBuffer.o EventBarrier.o Alarm.o
 
 USERPROG_H = ../userprog/addrspace.h\
 	../userprog/bitmap.h\
