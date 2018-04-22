@@ -130,6 +130,7 @@ main(int argc, char **argv)
 	  case 'g':
 		  testnum = 6;
 		  argCount++;
+		  break;
       default:
         testnum = 1;
         break;
