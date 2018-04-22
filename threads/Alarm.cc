@@ -1,9 +1,11 @@
 #include "Alarm.h"
 
+extern Alarm *alarm;
+
 Alarm::Alarm()
 {
 	queue = new DLList;
-	timer = new Timer(this->timerhandler, 0, false);
+	timer = new Timer(timerhandler, 0, false);
 	waiters = 0;
 }
 
@@ -24,24 +26,23 @@ void Alarm::Pause(int howLong)
 }
 
 
-
-void Alarm::timerhandler(int dummy)		//dummy 仅为占位，不需要用到这个参数
+void timerhandler(int dummy)		//dummy 仅为占位，不需要用到这个参数
 {
 	int duetime;
 	Thread *thread;
-	thread = (Thread *)queue->Remove(&duetime);
+	thread = (Thread *)alarm->queue->Remove(&duetime);
 	while (thread!= NULL)
 	{
 		if (stats->totalTicks - duetime <= 0)
 		{
-			waiters--;
+			alarm->waiters--;
 			scheduler->ReadyToRun(thread);
 			printf("%s wake up!\n",thread->getName());
 		}
 		else
 		{
 			printf("%d Ticks remains\n%d threads remains\n\n",
-				stats->totalTicks - duetime,waiters);
+				stats->totalTicks - duetime, alarm->waiters);
 		}
 	}
 	
