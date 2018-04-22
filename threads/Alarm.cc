@@ -33,14 +33,14 @@ void Alarm::Pause(int howLong)
 void timerhandler(int dummy)		//dummy 仅为占位，不需要用到这个参数
 {
 	int duetime;
-	Thread *thread;
+	Thread *thread=NULL;
 
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	//必须关中断
 
 	thread = (Thread *)alarm->queue->Remove(&duetime);
 	while (thread!= NULL)
 	{
-		if (stats->totalTicks - duetime <= 0)
+		if (duetime - stats->totalTicks <= 0)
 		{
 			alarm->waiters--;
 			scheduler->ReadyToRun(thread);
@@ -48,6 +48,7 @@ void timerhandler(int dummy)		//dummy 仅为占位，不需要用到这个参数
 		}
 		else
 		{
+			queue->SortedInsert((void *)thread,duetime);
 			printf("%d Ticks remains\n%d threads remains\n\n",
 				stats->totalTicks - duetime, alarm->waiters);
 		}

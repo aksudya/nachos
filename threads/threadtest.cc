@@ -348,8 +348,8 @@ ThreadTest6()
 	alarm = new Alarm;
 	tthread[0] = new Thread("thread 0");
 	tthread[1] = new Thread("thread 1");
-	tthread[0]->Fork(TestAlarm, 1000);
-	tthread[1]->Fork(TestAlarm, 2000);
+	tthread[0]->Fork(TestAlarm, 10000);
+	tthread[1]->Fork(TestAlarm, 20000);
 
 	tthread[2] = new Thread("thread 2");
 	tthread[2]->Fork(Loop, 3);
