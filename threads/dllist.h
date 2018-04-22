@@ -1,6 +1,7 @@
 //#include <cstdlib>
 //#include <cstdio>
 //#include<ctime>
+#pragma once
 #include "system.h"
 #include "synch.h"
 

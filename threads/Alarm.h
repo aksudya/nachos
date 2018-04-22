@@ -1,3 +1,4 @@
+#pragma once
 #include "system.h"
 #include "dllist.h"
 //#include "../machine/timer.h"
