@@ -16,6 +16,8 @@
 #include "BoundedBuffer.h"
 #include "EventBarrier.h"
 #include "Alarm.h"
+#include "Bridge.h"
+#include "../machine/sysdep.h"
 
 #define TABLESIZE 100000
 #define BOUNDEDBUFFERSIZE 1000
@@ -32,6 +34,7 @@ Table *table;
 BoundedBuffer *boundedbuffer;
 EventBarrier *barrier;
 Alarm *alarm;
+Bridge *bridge;
 
 void InsertList(int N, DLList *list);
 void RemoveList(int N, DLList *list);
@@ -380,6 +383,40 @@ ThreadTest6()
 
 }
 
+//----------------------------------------------------------------------
+// ThreadTest7 -h 
+//  test bridge
+//----------------------------------------------------------------------
+
+void
+TestBridge(int whitch)
+{
+	alarm->Pause(Random() % 10);
+	int start_time = stats->totalTicks;
+	bridge->OneVehicle(Random() % 2);
+	printf("%s costs %d\n", currentThread->getName(), stats->totalTicks - start_time);
+}
+
+void
+ThreadTest7()
+{
+	bridge = new Bridge;
+	alarm = new Alarm;
+	for (int i = 0; i < 100; ++i)
+	{
+		char No[4] = "1";
+		sprintf(No, "%d", i);
+		char *name = new char[25]; 
+		name[0] = '\0';
+		strcat(name, "car ");
+		strcat(name, No);
+
+		Thread *t = new Thread(name);
+		t->Fork(TestBridge, i);
+	}
+}
+
+
 
 //----------------------------------------------------------------------
 // ThreadTest
@@ -407,6 +444,9 @@ ThreadTest()
 	break;
 	case 6:
 	ThreadTest6();
+	break;
+	case 7:
+	ThreadTest7();
 	break;
     default:
 	printf("No test specified.\n");
