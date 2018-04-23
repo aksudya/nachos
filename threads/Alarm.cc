@@ -15,10 +15,10 @@ Alarm::~Alarm()
 	delete timer;
 }
 
-void Alarm::Pause(int howLong)
+void Alarm::Pause(int howLong)	//howlong单位为中断次数
 {
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	//必须关中断
-
+	int Ticks = TimerTicks * howLong;
 	waiters++;
 	Thread *loop_t;
 	if(waiters==1)
@@ -27,7 +27,7 @@ void Alarm::Pause(int howLong)
 		loop_t->Fork(check, 0);			//使至少有一个线程在运行，防止系统终止
 	}
 	queue->SortedInsert((void *)currentThread,
-		stats->totalTicks + howLong);	//按结束时间依序插入链表
+		stats->totalTicks + Ticks);	//按结束时间依序插入链表
 
 	currentThread->Sleep();
 
