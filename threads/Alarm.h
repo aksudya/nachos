@@ -3,7 +3,7 @@
 #include "dllist.h"
 //#include "../machine/timer.h"
 void timerhandler(int dummy);
-
+void check(int which);
 
 class Alarm
 {

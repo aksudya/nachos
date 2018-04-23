@@ -35,7 +35,12 @@ Alarm *alarm;
 
 void InsertList(int N, DLList *list);
 void RemoveList(int N, DLList *list);
+
 //----------------------------------------------------------------------
+// ThreadTest1 -q
+// 	Set up a ping-pong between two threads, by forking a thread 
+//	to call SimpleThread, and then calling SimpleThread ourselves.
+//
 // SimpleThread
 // 	Loop 5 times, yielding the CPU to another ready thread 
 //	each iteration.
@@ -55,7 +60,91 @@ SimpleThread(int which)
     }
 }
 
+void
+ThreadTest1()
+{
+    DEBUG('t', "Entering ThreadTest1 ");
 
+    Thread *t = new Thread("forked thread");
+
+    t->Fork(SimpleThread, 1);
+    SimpleThread(0);
+}
+
+//----------------------------------------------------------------------
+// ThreadTest2 -m
+//  test Dllist with producer-consumer
+//----------------------------------------------------------------------
+
+void
+TestDllist_producer(int which)
+{
+
+	while (true)
+	{
+		 void *item;
+		 int key=Random()%10;
+		 //int key=i;
+		 int *items=new int[1];
+		 items[0]=-key;
+		 item=items;
+		 printf("%s in:%d %d\n",currentThread->getName(),key,*(int*)item);
+		 //currentThread->Yield();
+		 list->SortedInsert(item,key);
+		 //currentThread->Yield();
+	}
+
+}
+
+void
+TestDllist_consumer(int which)
+{
+	while (true)
+	{
+		 int key;
+		 void *item;
+		 item=list->Remove(&key);
+		 printf("%s out:%d %d\n",currentThread->getName(),key,*(int*)item);
+	}
+}
+
+void
+ThreadTest2()
+{
+	DEBUG('t', "Entering ThreadTest2 ");
+	list=new DLList();
+	for (int var = 0; var < producersnum; var++)
+		{
+			char No[4]="1";
+			sprintf(No, "%d", var);
+			//char name[18]="forked thread ";	//error
+			char *name=new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址 
+			name[0]='\0';
+			strcat(name,"producer thread ");
+			strcat(name,No);
+
+			Thread *t = new Thread(name);
+			t->Fork(TestDllist_producer,var);
+		}
+		for (int var = 0; var < consumersnum; var++)
+		{
+			char No[4] = "1";
+			sprintf(No, "%d", var);
+			//char name[18]="forked thread ";	//error
+			char *name = new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+			name[0] = '\0';
+			strcat(name, "consumer thread ");
+			strcat(name, No);
+
+			Thread *t = new Thread(name);
+			t->Fork(TestDllist_consumer, var);
+		}
+}
+
+//----------------------------------------------------------------------
+// ThreadTest3 -a
+//  test Table with producer-consumer
+//----------------------------------------------------------------------
 
 void
 TestTable_producer(int which)
@@ -95,37 +184,45 @@ TestTable_consumer(int which)
 		//currentThread->Yield();
 	}
 }
-void
-TestDllist_producer(int which)
-{
-
-	while (true)
-	{
-		 void *item;
-		 int key=Random()%10;
-		 //int key=i;
-		 int *items=new int[1];
-		 items[0]=-key;
-		 item=items;
-		 printf("%s in:%d %d\n",currentThread->getName(),key,*(int*)item);
-		 //currentThread->Yield();
-		 list->SortedInsert(item,key);
-		 //currentThread->Yield();
-	}
-
-}
 
 void
-TestDllist_consumer(int which)
+ThreadTest3()
 {
-	while (true)
+	DEBUG('t', "Entering ThreadTest3 ");
+	//list=new DLList();
+	table = new Table(TABLESIZE);
+	for (int var = 0; var < producersnum; var++)
 	{
-		 int key;
-		 void *item;
-		 item=list->Remove(&key);
-		 printf("%s out:%d %d\n",currentThread->getName(),key,*(int*)item);
+		char No[4]="1";
+		sprintf(No, "%d", var);
+		//char name[18]="forked thread ";	//error
+		char *name=new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+		name[0]='\0';
+		strcat(name,"producer thread ");
+		strcat(name,No);
+
+		Thread *t = new Thread(name);
+		t->Fork(TestTable_producer,var);
+	}
+	for (int var = 0; var < consumersnum; var++)
+	{
+		char No[4] = "1";
+		sprintf(No, "%d", var);
+		//char name[18]="forked thread ";	//error
+		char *name = new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+		name[0] = '\0';
+		strcat(name, "consumer thread ");
+		strcat(name, No);
+
+		Thread *t = new Thread(name);
+		t->Fork(TestTable_consumer, var);
 	}
 }
+
+//----------------------------------------------------------------------
+// ThreadTest4 -b
+//  test BoundedBuffer with producer-consumer
+//----------------------------------------------------------------------
 
 void
 TestBuffer_producer(int which)
@@ -164,116 +261,6 @@ TestBuffer_consumer(int which)
 }
 
 void
-TestEventBarrier_runing(int whitch)
-{
-	barrier->Wait();
-	for (int i = 0; i < 1000; ++i)
-	{
-		for (int i = 0; i < 1000; ++i)
-		{
-			currentThread->Yield();
-//thread runing;
-		}
-	}
-    printf("%s complete\n", currentThread->getName());
-    printf("waiters:%d\n", barrier->Waiters());
-    
-	barrier->Complete();
-	printf("%s finished\n", currentThread->getName());
-	printf("waiters:%d\n", barrier->Waiters());
-}
-
-void
-TestEventBarrier_signal(int whitch)
-{
-	printf("----%s signaled-----\n", currentThread->getName());
-	barrier->Signal();
-}
-//----------------------------------------------------------------------
-// ThreadTest1
-// 	Set up a ping-pong between two threads, by forking a thread 
-//	to call SimpleThread, and then calling SimpleThread ourselves.
-//----------------------------------------------------------------------
-
-void
-ThreadTest1()
-{
-    DEBUG('t', "Entering ThreadTest1 ");
-
-    Thread *t = new Thread("forked thread");
-
-    t->Fork(SimpleThread, 1);
-    SimpleThread(0);
-}
-
-void
-ThreadTest2()
-{
-	DEBUG('t', "Entering ThreadTest2 ");
-	list=new DLList();
-	for (int var = 0; var < producersnum; var++)
-		{
-			char No[4]="1";
-			sprintf(No, "%d", var);
-			//char name[18]="forked thread ";	//error
-			char *name=new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址 
-			name[0]='\0';
-			strcat(name,"producer thread ");
-			strcat(name,No);
-
-			Thread *t = new Thread(name);
-			t->Fork(TestDllist_producer,var);
-		}
-		for (int var = 0; var < consumersnum; var++)
-		{
-			char No[4] = "1";
-			sprintf(No, "%d", var);
-			//char name[18]="forked thread ";	//error
-			char *name = new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
-			name[0] = '\0';
-			strcat(name, "consumer thread ");
-			strcat(name, No);
-
-			Thread *t = new Thread(name);
-			t->Fork(TestDllist_consumer, var);
-		}
-}
-
-void
-ThreadTest3()
-{
-	DEBUG('t', "Entering ThreadTest3 ");
-	//list=new DLList();
-	table = new Table(TABLESIZE);
-	for (int var = 0; var < producersnum; var++)
-	{
-		char No[4]="1";
-		sprintf(No, "%d", var);
-		//char name[18]="forked thread ";	//error
-		char *name=new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
-		name[0]='\0';
-		strcat(name,"producer thread ");
-		strcat(name,No);
-
-		Thread *t = new Thread(name);
-		t->Fork(TestTable_producer,var);
-	}
-	for (int var = 0; var < consumersnum; var++)
-	{
-		char No[4] = "1";
-		sprintf(No, "%d", var);
-		//char name[18]="forked thread ";	//error
-		char *name = new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
-		name[0] = '\0';
-		strcat(name, "consumer thread ");
-		strcat(name, No);
-
-		Thread *t = new Thread(name);
-		t->Fork(TestTable_consumer, var);
-	}
-}
-
-void
 ThreadTest4()
 {
 	DEBUG('t', "Entering ThreadTest4 ");
@@ -307,6 +294,38 @@ ThreadTest4()
 	}
 }
 
+//----------------------------------------------------------------------
+// ThreadTest5 -e 
+//  test EventBarrier
+//----------------------------------------------------------------------
+
+void
+TestEventBarrier_runing(int whitch)
+{
+	barrier->Wait();
+	for (int i = 0; i < 1000; ++i)
+	{
+		for (int i = 0; i < 1000; ++i)
+		{
+			currentThread->Yield();
+//thread runing;
+		}
+	}
+    printf("%s complete\n", currentThread->getName());
+    printf("waiters:%d\n", barrier->Waiters());
+    
+	barrier->Complete();
+	printf("%s finished\n", currentThread->getName());
+	printf("waiters:%d\n", barrier->Waiters());
+}
+
+void
+TestEventBarrier_signal(int whitch)
+{
+	printf("----%s signaled-----\n", currentThread->getName());
+	barrier->Signal();
+}
+
 void
 ThreadTest5()
 {
@@ -323,7 +342,8 @@ ThreadTest5()
 }
 
 //----------------------------------------------------------------------
-//test alarm
+// ThreadTest6 -g 
+//  test Alarm
 //----------------------------------------------------------------------
 
 void TestAlarm(int time)
@@ -332,13 +352,13 @@ void TestAlarm(int time)
 	alarm->Pause(time);
 }
 
-void Loop(int which)
-{
-	while (true)
-	{
-		currentThread->Yield();
-	}
-}
+//void Loop(int which)
+//{
+//	while (true)
+//	{
+//		currentThread->Yield();
+//	}
+//}
 
 void
 ThreadTest6()
@@ -348,11 +368,15 @@ ThreadTest6()
 	alarm = new Alarm;
 	tthread[0] = new Thread("thread 0");
 	tthread[1] = new Thread("thread 1");
-	tthread[0]->Fork(TestAlarm, 10000000);
-	tthread[1]->Fork(TestAlarm, 20000);
-
 	tthread[2] = new Thread("thread 2");
-	tthread[2]->Fork(Loop, 3);
+
+	tthread[0]->Fork(TestAlarm, 10000);
+	tthread[1]->Fork(TestAlarm, 20000);
+	tthread[2]->Fork(TestAlarm, 30000);
+
+
+	//tthread[2] = new Thread("thread 2");
+	//tthread[2]->Fork(Loop, 3);
 
 }
 

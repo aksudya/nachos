@@ -20,13 +20,27 @@ void Alarm::Pause(int howLong)
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	//必须关中断
 
 	waiters++;
+	Thread *loop_t;
+	if(waiters==1)
+	{
+		loop_t = new Thread("loop thread");
+		loop_t->Fork(check, 0);			//使至少有一个线程在运行，防止系统终止
+	}
 	queue->SortedInsert((void *)currentThread,
 		stats->totalTicks + howLong);	//按结束时间依序插入链表
 
-	//queue->Append((void *)currentThread);
 	currentThread->Sleep();
 
 	(void)interrupt->SetLevel(oldLevel);
+}
+
+void check(int which)
+{
+	while (alarm->waiters!=0)
+	{
+		currentThread->Yield();
+	}
+	currentThread->Finish();
 }
 
 
