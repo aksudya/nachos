@@ -63,8 +63,8 @@ void timerhandler(int dummy)		//dummy 仅为占位，不需要用到这个参数
 		else
 		{
 			alarm->queue->SortedInsert((void *)thread,duetime);
-			//printf("%d Ticks remains\n%d threads remains\n\n",
-				duetime-stats->totalTicks, alarm->waiters);
+			//printf("%d Ticks remains\n%d threads remains\n\n",  
+			//	duetime-stats->totalTicks, alarm->waiters);     //debug使用
 		}
 	}
 
