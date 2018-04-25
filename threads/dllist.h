@@ -36,5 +36,5 @@ private:
     DLLElement *last;
 
 	Lock *lock;				// enforce mutual exclusive access to the list
-	Condition *listEmpty;	// wait in Remove if the list is empty
+	// Condition *listEmpty;	// wait in Remove if the list is empty
 };

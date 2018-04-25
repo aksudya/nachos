@@ -349,20 +349,33 @@ ThreadTest5()
 //  test Alarm
 //----------------------------------------------------------------------
 
-void TestAlarm(int time)
+void TestAlarm1(int time)
 {
 	printf("set %s %d\n", currentThread->getName(), time);
 	alarm->Pause(time);
 }
 
-//void Loop(int which)
-//{
-//	while (true)
-//	{
-//		currentThread->Yield();
-//	}
-//}
+void TestAlarm(int time)
+{
+	printf("set %s %d\n", currentThread->getName(), time);
+	alarm->Pause(time);
+	if(time==3)
+	{
+		Thread *tthread = new Thread("thread 3");
+		tthread->Fork(TestAlarm1, 2);
+	}
+}
 
+
+/*
+void Loop(int which)
+{
+	while (true)
+	{
+		currentThread->Yield();
+	}
+}
+*/
 void
 ThreadTest6()
 {
@@ -373,9 +386,9 @@ ThreadTest6()
 	tthread[1] = new Thread("thread 1");
 	tthread[2] = new Thread("thread 2");
 
-	tthread[0]->Fork(TestAlarm, 10000);
-	tthread[1]->Fork(TestAlarm, 20000);
-	tthread[2]->Fork(TestAlarm, 30000);
+	tthread[0]->Fork(TestAlarm, 1);
+	tthread[1]->Fork(TestAlarm, 2);
+	tthread[2]->Fork(TestAlarm, 3);
 
 
 	//tthread[2] = new Thread("thread 2");
@@ -387,22 +400,26 @@ ThreadTest6()
 // ThreadTest7 -h 
 //  test bridge
 //----------------------------------------------------------------------
+int Total_num=10;
 
 void
 TestBridge(int whitch)
 {
 	alarm->Pause(Random() % 10);
 	int start_time = stats->totalTicks;
-	bridge->OneVehicle(Random() % 2);
-	printf("%s costs %d\n", currentThread->getName(), stats->totalTicks - start_time);
+	int direc=Random() % 2;
+	printf("%s start at %d ticks in %d direction\n",currentThread->getName(),start_time,direc);
+	bridge->OneVehicle(direc);
+	printf("%s costs %d\n\n", currentThread->getName(), stats->totalTicks - start_time);
 }
+
 
 void
 ThreadTest7()
 {
 	bridge = new Bridge;
 	alarm = new Alarm;
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < Total_num; ++i)
 	{
 		char No[4] = "1";
 		sprintf(No, "%d", i);

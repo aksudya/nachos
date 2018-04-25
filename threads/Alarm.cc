@@ -17,20 +17,24 @@ Alarm::~Alarm()
 
 void Alarm::Pause(int howLong)	//howlong单位为中断次数
 {
-	IntStatus oldLevel = interrupt->SetLevel(IntOff);	//必须关中断
-	int Ticks = TimerTicks * howLong;
+
+
 	waiters++;
+
 	Thread *loop_t;
+
 	if(waiters==1)
 	{
 		loop_t = new Thread("loop thread");
 		loop_t->Fork(check, 0);			//使至少有一个线程在运行，防止系统终止
 	}
+
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);	//必须关中断
+	int Ticks = TimerTicks * howLong;
 	queue->SortedInsert((void *)currentThread,
 		stats->totalTicks + Ticks);	//按结束时间依序插入链表
 
 	currentThread->Sleep();
-
 	(void)interrupt->SetLevel(oldLevel);
 }
 
@@ -46,25 +50,30 @@ void check(int which)
 
 void timerhandler(int dummy)		//dummy 仅为占位，不需要用到这个参数
 {
-	int duetime;
+	int duetime=-1;
 	Thread *thread=NULL;
-
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	//必须关中断
-
 	thread = (Thread *)alarm->queue->Remove(&duetime);
-	if (thread!= NULL)
+	while (thread!= NULL)
 	{
 		if (duetime - stats->totalTicks <= 0)
 		{
+			//IntStatus oldLevel = interrupt->SetLevel(IntOff);
 			alarm->waiters--;
 			scheduler->ReadyToRun(thread);
-			printf("%s wake up!\n",thread->getName());
+			//printf("%s wake up!\n",thread->getName());	 	//debug使用
+			thread = (Thread *)alarm->queue->Remove(&duetime);
+
+			//(void)interrupt->SetLevel(oldLevel);
+
 		}
 		else
 		{
 			alarm->queue->SortedInsert((void *)thread,duetime);
-			//printf("%d Ticks remains\n%d threads remains\n\n",  
-			//	duetime-stats->totalTicks, alarm->waiters);     //debug使用
+			//printf("%d Ticks remains\n%d threads remains\n\n",
+				//duetime-stats->totalTicks, alarm->waiters);     //debug使用
+			break;
+
 		}
 	}
 

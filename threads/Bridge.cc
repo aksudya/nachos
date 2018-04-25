@@ -28,9 +28,13 @@ void Bridge::ArriveBridge(int direc)
 	}
 
 	while((direc==0 && ( current_direc==1 || on_bridge_num>=3))
-		&& (direc == 1 && (current_direc == 0 || on_bridge_num >= 3)))
+		|| (direc == 1 && (current_direc == 0 || on_bridge_num >= 3)))
 	{
 		con->Wait(lock);
+		if(on_bridge_num==0)
+		{
+			current_direc = direc;
+		}
 	}
 	
 	on_bridge_num++;
@@ -40,7 +44,7 @@ void Bridge::ArriveBridge(int direc)
 
 void Bridge::CrossBridge(int direc)
 {
-	printf("%s car is crossing the bridge in %d direc\n%d cars on the bridge\n\n"
+	printf("%s car is crossing the bridge in %d direc\n%d cars on the bridge\n"
 		,currentThread->getName(), direc,on_bridge_num);
 	alarm->Pause(CROSS_BRIDGE_TIME);
 }
@@ -50,9 +54,12 @@ void Bridge::ExitBridge(int direc)
 	lock->Acquire();
 
 	on_bridge_num--;
+    printf("%s car leave the bridge\n",currentThread->getName());
 	con->Broadcast(lock);
 
+
 	lock->Release();
+
 }
 
 
