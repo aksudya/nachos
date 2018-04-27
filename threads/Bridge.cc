@@ -29,7 +29,7 @@ void Bridge::ArriveBridge(int direc)
 		current_direc = direc;
 	}
 
-	while (direc != current_direc && on_bridge_num>3 && pre_is_wait)
+	while (direc != current_direc || on_bridge_num>3 || pre_is_wait)
 	{
 		pre_is_wait = true;
 		con->Wait(lock);
