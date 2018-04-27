@@ -2,13 +2,78 @@
 #include "Alarm.h"
 
 extern Alarm *alarm;
-
-#ifdef FCFS		//先来先服务算法
+#ifdef FCFS
 
 Bridge::Bridge()
 {
 	lock = new Lock("bridge lock");
 	con = new Condition("FCFS condition");
+	on_bridge_num = 0;
+	current_direc = 0;
+	pre_is_wait = false;
+
+}
+
+Bridge::~Bridge()
+{
+	delete lock;
+	delete con;
+}
+
+void Bridge::ArriveBridge(int direc)
+{
+	lock->Acquire();
+
+	if (on_bridge_num == 0)
+	{
+		current_direc = direc;
+	}
+
+	while (direc != current_direc && on_bridge_num>3 && pre_is_wait)
+	{
+		pre_is_wait = true;
+		con->Wait(lock);
+		pre_is_wait = false;
+		if (on_bridge_num == 0)
+		{
+			current_direc = direc;
+		}
+	}
+
+	on_bridge_num++;
+
+	lock->Release();
+}
+
+void Bridge::CrossBridge(int direc)
+{
+	printf("%s car is crossing the bridge in %d direc\n%d cars on the bridge\n"
+		, currentThread->getName(), direc, on_bridge_num);
+	alarm->Pause(CROSS_BRIDGE_TIME);
+}
+
+void Bridge::ExitBridge(int direc)
+{
+	lock->Acquire();
+
+	on_bridge_num--;
+	printf("%s car leave the bridge\n", currentThread->getName());
+	con->Signal(lock);
+
+
+	lock->Release();
+
+}
+
+#endif
+
+
+#ifdef ONE_DIRECTION		//同方向优化算法
+
+Bridge::Bridge()
+{
+	lock = new Lock("bridge lock");
+	con = new Condition("ONE_DIRECTION condition");
 	on_bridge_num = 0;
 }
 
