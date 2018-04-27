@@ -2,7 +2,8 @@
 #include "Alarm.h"
 
 extern Alarm *alarm;
-#ifdef FCFS
+
+#ifdef FCFS				//先来先服务算法
 
 Bridge::Bridge()
 {
@@ -29,7 +30,7 @@ void Bridge::ArriveBridge(int direc)
 		current_direc = direc;
 	}
 
-	while (direc != current_direc || on_bridge_num>3 || pre_is_wait)
+	while (direc != current_direc || on_bridge_num>=3 || pre_is_wait)
 	{
 		pre_is_wait = true;
 		con->Wait(lock);
@@ -58,7 +59,7 @@ void Bridge::ExitBridge(int direc)
 
 	on_bridge_num--;
 	printf("%s car leave the bridge\n", currentThread->getName());
-	con->Signal(lock);
+	con->Broadcast(lock);
 
 
 	lock->Release();
@@ -75,6 +76,7 @@ Bridge::Bridge()
 	lock = new Lock("bridge lock");
 	con = new Condition("ONE_DIRECTION condition");
 	on_bridge_num = 0;
+	current_direc=0;
 }
 
 Bridge::~Bridge()
@@ -92,8 +94,7 @@ void Bridge::ArriveBridge(int direc)
 		current_direc = direc;
 	}
 
-	while((direc==0 && ( current_direc==1 || on_bridge_num>=3))
-		|| (direc == 1 && (current_direc == 0 || on_bridge_num >= 3)))
+	while(direc != current_direc || on_bridge_num>=3)
 	{
 		con->Wait(lock);
 		if(on_bridge_num==0)
@@ -177,6 +178,7 @@ void Bridge::CrossBridge(int direc)
 void Bridge::ExitBridge(int direc)
 {
 	lock->Acquire();
+
 
 	lock->Release();
 }

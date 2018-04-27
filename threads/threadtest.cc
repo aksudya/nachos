@@ -401,6 +401,8 @@ ThreadTest6()
 //  test bridge
 //----------------------------------------------------------------------
 int Total_num=10;
+int sumtime=0;
+int End_num=0;
 
 void
 TestBridge(int whitch)
@@ -411,6 +413,13 @@ TestBridge(int whitch)
 	printf("%s start at %d ticks in %d direction\n",currentThread->getName(),start_time,direc);
 	bridge->OneVehicle(direc);
 	printf("%s costs %d\n\n", currentThread->getName(), stats->totalTicks - start_time);
+	sumtime+=stats->totalTicks - start_time;
+	End_num++;
+	if(End_num==Total_num)
+	{
+		printf("\n------avg turnaround time %.2f------\n\n",(float)sumtime/Total_num);
+
+	}
 }
 
 
@@ -431,6 +440,7 @@ ThreadTest7()
 		Thread *t = new Thread(name);
 		t->Fork(TestBridge, i);
 	}
+
 }
 
 
