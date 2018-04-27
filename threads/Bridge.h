@@ -28,6 +28,7 @@ private:
 	int on_bridge_num;
 	int current_direc;
 
+	bool pre_is_wait;
 	Lock *lock;
 	Condition *con;
 
