@@ -119,6 +119,11 @@ TestDllist_consumer(int which)
 		 int key;
 		 void *item;
 		 item=list->Remove(&key);
+		 if(item==NULL)
+		 {
+			 printf("list is empty,process end\n");
+			 break;
+		 }		 
 		 printf("%s out:%d %d\n",currentThread->getName(),key,*(int*)item);
 	}
 }
