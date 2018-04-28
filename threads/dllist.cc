@@ -61,7 +61,7 @@ void DLList::Prepend(void *item)
         first->prev=temp;
         first=temp;
     }
-	listEmpty->Signal(lock);	// wake up a waiter, if any
+	//listEmpty->Signal(lock);	// wake up a waiter, if any
 	lock->Release();
     
 }
@@ -85,7 +85,7 @@ void DLList::Append(void *item)
         last->next=temp;
         last=temp;
     }
-	listEmpty->Signal(lock);	// wake up a waiter, if any
+	//listEmpty->Signal(lock);	// wake up a waiter, if any
 	lock->Release();
 }
 
