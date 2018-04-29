@@ -20,13 +20,13 @@ DLList::DLList()
     last=NULL;
 	
 	lock = new Lock("list lock");
-	listEmpty = new Condition("list empty cond");
+	//listEmpty = new Condition("list empty cond");
 }
 
 DLList::~DLList()
 {
 	delete lock;
-	delete listEmpty;
+	//delete listEmpty;
 }
 
 bool DLList::IsEmpty()
@@ -61,7 +61,7 @@ void DLList::Prepend(void *item)
         first->prev=temp;
         first=temp;
     }
-	listEmpty->Signal(lock);	// wake up a waiter, if any
+	//listEmpty->Signal(lock);	// wake up a waiter, if any
 	lock->Release();
     
 }
@@ -85,7 +85,7 @@ void DLList::Append(void *item)
         last->next=temp;
         last=temp;
     }
-	listEmpty->Signal(lock);	// wake up a waiter, if any
+	//listEmpty->Signal(lock);	// wake up a waiter, if any
 	lock->Release();
 }
 
@@ -95,16 +95,16 @@ void *DLList::Remove(int *keyPtr)
     void *RemovedItem;
 
 	lock->Acquire();
-	while (this->IsEmpty())
-	{
-		listEmpty->Wait(lock);	// wait until list isn't empty
-	}		
+	//while (this->IsEmpty())
+	//{
+	//	listEmpty->Wait(lock);	// wait until list isn't empty
+	//}		
     if(this->IsEmpty())
     {
     	//currentThread->Yield();
         keyPtr=NULL;
         //currentThread->Yield();
-        return NULL;
+		RemovedItem=NULL;
     }
     else
     {
@@ -128,7 +128,7 @@ void *DLList::Remove(int *keyPtr)
             //currentThread->Yield();		//error result error
         }
     }
-	ASSERT(RemovedItem != NULL);
+	//ASSERT(RemovedItem != NULL);
 	lock->Release();
     return RemovedItem;
 
@@ -199,7 +199,7 @@ void DLList::SortedInsert(void *item, int sortKey)
             //currentThread->Yield();
         }
     }
-	listEmpty->Signal(lock);	// wake up a waiter, if any
+	//listEmpty->Signal(lock);	// wake up a waiter, if any
 	lock->Release();
 }
 
@@ -208,14 +208,14 @@ void *DLList::SortedRemove(int sortKey)
     void *ReturnItem;
 
 	lock->Acquire();
-	while (this->IsEmpty())
-	{
-		listEmpty->Wait(lock);	// wait until list isn't empty
-	}
+	//while (this->IsEmpty())
+	//{
+	//	listEmpty->Wait(lock);	// wait until list isn't empty
+	//}
 
     if(this->IsEmpty())
     {
-        return NULL;
+		ReturnItem=NULL;
     }
     else
     {
@@ -226,7 +226,7 @@ void *DLList::SortedRemove(int sortKey)
         }
         if(find==NULL)
         {
-            return NULL;
+			ReturnItem = NULL;
         }
         else
         {
@@ -254,7 +254,7 @@ void *DLList::SortedRemove(int sortKey)
         }
     }
 	
-	ASSERT(ReturnItem != NULL);
+	//ASSERT(ReturnItem != NULL);
 	lock->Release();
 	return ReturnItem;
 }

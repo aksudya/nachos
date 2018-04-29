@@ -14,6 +14,7 @@
 #include "dllist.h"
 #include "Table.h"
 #include "BoundedBuffer.h"
+#include "../userprog/syscall.h"
 
 #define TABLESIZE 100000
 #define BOUNDEDBUFFERSIZE 1000
@@ -119,6 +120,12 @@ TestDllist_consumer(int which)
 		 int key;
 		 void *item;
 		 item=list->Remove(&key);
+		 ASSERT(item != NULL);
+		 //if(item==NULL)
+		 //{
+			// printf("dllist is empty,progress end\n");			 
+			// break;
+		 //}
 		 printf("%s out:%d %d\n",currentThread->getName(),key,*(int*)item);
 	}
 }

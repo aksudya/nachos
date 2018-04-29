@@ -132,7 +132,7 @@ void Lock::Acquire()
 void Lock::Release()
 {
 
-	//inte->P();
+	inte->P();
 
 	ASSERT(isHeldByCurrentThread());
 	
@@ -140,7 +140,7 @@ void Lock::Release()
 
 	sem->V();
 	
-	//inte->V();
+	inte->V();
 
 	
 }
@@ -166,7 +166,7 @@ Condition::~Condition()
 void Condition::Wait(Lock* conditionLock)
 {
 	
-	inte->P();
+	//inte->P();
 
 	ASSERT(conditionLock->isHeldByCurrentThread());
 	conditionLock->Release();
@@ -174,12 +174,12 @@ void Condition::Wait(Lock* conditionLock)
 	sem->P();
 	conditionLock->Acquire();
 
-	inte->V();
+	//inte->V();
 }
 
 void Condition::Signal(Lock* conditionLock)
 {
-	inte->P();
+	//inte->P();
 
 	ASSERT(conditionLock->isHeldByCurrentThread());
 
@@ -189,12 +189,12 @@ void Condition::Signal(Lock* conditionLock)
 		sem->V();
 	}
 
-	inte->V();
+	//inte->V();
 }
 
 void Condition::Broadcast(Lock* conditionLock)
 {
-	inte->P();
+	//inte->P();
 	ASSERT(conditionLock->isHeldByCurrentThread());
 
 	while (blockNum>0)
@@ -203,5 +203,5 @@ void Condition::Broadcast(Lock* conditionLock)
 		sem->V();
 	}
 
-	inte->V();
+	//inte->V();
 }
