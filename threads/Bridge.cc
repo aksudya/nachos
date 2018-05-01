@@ -3,6 +3,13 @@
 
 //extern Alarm *alarm;
 
+Bridge * Bridge::instance;
+
+void Bridge::new_instance()
+{
+	instance=new Bridge();
+}
+
 #ifdef FCFS				//先来先服务算法
 
 Bridge::Bridge()

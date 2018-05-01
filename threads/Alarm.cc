@@ -1,7 +1,11 @@
 #include "Alarm.h"
 
-Alarm * Alarm::instance = new Alarm();
+Alarm * Alarm::instance;
 
+void Alarm::new_instance()
+{
+	instance=new Alarm();
+}
 
 Alarm::Alarm()
 {

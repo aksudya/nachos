@@ -22,7 +22,8 @@ public:
 		ExitBridge(direc);
 	};
 
-	//static Bridge *instance;
+	static void new_instance();
+	static Bridge *instance;
 private:
 	void ArriveBridge(int direc);
 	void CrossBridge(int direc);

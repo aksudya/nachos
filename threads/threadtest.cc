@@ -34,7 +34,7 @@ Table *table;
 BoundedBuffer *boundedbuffer;
 EventBarrier *barrier;
 //Alarm *alarm;
-Bridge *bridge;
+//Bridge *bridge;
 
 void InsertList(int N, DLList *list);
 void RemoveList(int N, DLList *list);
@@ -381,6 +381,7 @@ ThreadTest6()
 {
 
 	Thread *tthread[4];
+	Alarm::new_instance();
 	//alarm = new Alarm;
 	tthread[0] = new Thread("thread 0");
 	tthread[1] = new Thread("thread 1");
@@ -414,7 +415,7 @@ TestBridge(int whitch)
 	int start_time = stats->totalTicks;
 	int direc=Random() % 2;
 	printf("%s start at %d ticks in %d direction\n",currentThread->getName(),start_time,direc);
-	bridge->OneVehicle(direc);
+	Bridge::instance->OneVehicle(direc);
 	printf("%s costs %d\n\n", currentThread->getName(), stats->totalTicks - start_time);
 	sumtime+=stats->totalTicks - start_time;
 	End_num++;
@@ -429,7 +430,8 @@ TestBridge(int whitch)
 void
 ThreadTest7()
 {
-	bridge = new Bridge;
+	Bridge::new_instance();
+	Alarm::new_instance();
 	//alarm = new Alarm;
 	for (int i = 0; i < Total_num; ++i)
 	{

@@ -15,5 +15,6 @@ public:
 	Timer *timer;
 	int waiters;
 	
-	static  Alarm *instance;
+	static void new_instance();
+	static Alarm *instance;
 };
