@@ -21,6 +21,8 @@ public:
 		CrossBridge(direc);
 		ExitBridge(direc);
 	};
+
+	//static Bridge *instance;
 private:
 	void ArriveBridge(int direc);
 	void CrossBridge(int direc);
@@ -61,6 +63,7 @@ private:
 
 	void switch_status();
 
+	Thread *management;
 #endif
 
 };

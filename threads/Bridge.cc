@@ -1,7 +1,7 @@
 #include "Bridge.h"
 #include "Alarm.h"
 
-extern Alarm *alarm;
+//extern Alarm *alarm;
 
 #ifdef FCFS				//先来先服务算法
 
@@ -50,7 +50,7 @@ void Bridge::CrossBridge(int direc)
 {
 	printf("%s car is crossing the bridge in %d direc\n%d cars on the bridge\n"
 		, currentThread->getName(), direc, on_bridge_num);
-	alarm->Pause(CROSS_BRIDGE_TIME);
+	Alarm::instance->Pause(CROSS_BRIDGE_TIME);
 }
 
 void Bridge::ExitBridge(int direc)
@@ -112,7 +112,7 @@ void Bridge::CrossBridge(int direc)
 {
 	printf("%s car is crossing the bridge in %d direc\n%d cars on the bridge\n"
 		,currentThread->getName(), direc,on_bridge_num);
-	alarm->Pause(CROSS_BRIDGE_TIME);
+	Alarm::instance->Pause(CROSS_BRIDGE_TIME);
 }
 
 void Bridge::ExitBridge(int direc)
@@ -193,7 +193,7 @@ void Bridge::CrossBridge(int direc)
 {
 	printf("%s car is crossing the bridge in %d direc\n%d cars on the bridge\n"
 		, currentThread->getName(), direc, on_bridge_num);
-	alarm->Pause(CROSS_BRIDGE_TIME);
+	Alarm::instance->Pause(CROSS_BRIDGE_TIME);
 }
 
 void Bridge::ExitBridge(int direc)

@@ -7,14 +7,13 @@ void check(int which);
 
 class Alarm
 {
-public:
+public:			
 	Alarm();
 	~Alarm();
 	void Pause(int howLong);
-
-	//对不起我放弃private,太tm麻烦了
 	DLList * queue;
 	Timer *timer;
 	int waiters;
 	
+	static  Alarm *instance;
 };

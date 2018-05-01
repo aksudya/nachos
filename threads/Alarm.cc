@@ -1,6 +1,7 @@
 #include "Alarm.h"
 
-extern Alarm *alarm;
+Alarm * Alarm::instance = new Alarm();
+
 
 Alarm::Alarm()
 {
@@ -17,8 +18,6 @@ Alarm::~Alarm()
 
 void Alarm::Pause(int howLong)	//howlong单位为中断次数
 {
-
-
 	waiters++;
 
 	Thread *loop_t;
@@ -40,7 +39,7 @@ void Alarm::Pause(int howLong)	//howlong单位为中断次数
 
 void check(int which)
 {
-	while (alarm->waiters!=0)
+	while (Alarm::instance->waiters!=0)
 	{
 		currentThread->Yield();
 	}
@@ -53,25 +52,25 @@ void timerhandler(int dummy)		//dummy 仅为占位，不需要用到这个参数
 	int duetime=-1;
 	Thread *thread=NULL;
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	//必须关中断
-	thread = (Thread *)alarm->queue->Remove(&duetime);
+	thread = (Thread *)Alarm::instance->queue->Remove(&duetime);
 	while (thread!= NULL)
 	{
 		if (duetime - stats->totalTicks <= 0)
 		{
 			//IntStatus oldLevel = interrupt->SetLevel(IntOff);
-			alarm->waiters--;
+			Alarm::instance->waiters--;
 			scheduler->ReadyToRun(thread);
 			//printf("%s wake up!\n",thread->getName());	 	//debug使用
-			thread = (Thread *)alarm->queue->Remove(&duetime);
+			thread = (Thread *)Alarm::instance->queue->Remove(&duetime);
 
 			//(void)interrupt->SetLevel(oldLevel);
 
 		}
 		else
 		{
-			alarm->queue->SortedInsert((void *)thread,duetime);
+			Alarm::instance->queue->SortedInsert((void *)thread,duetime);
 			//printf("%d Ticks remains\n%d threads remains\n\n",
-				//duetime-stats->totalTicks, alarm->waiters);     //debug使用
+				//duetime-stats->totalTicks, Alarm::instance->waiters);     //debug使用
 			break;
 
 		}

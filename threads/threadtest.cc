@@ -33,7 +33,7 @@ DLList *list;
 Table *table;
 BoundedBuffer *boundedbuffer;
 EventBarrier *barrier;
-Alarm *alarm;
+//Alarm *alarm;
 Bridge *bridge;
 
 void InsertList(int N, DLList *list);
@@ -352,13 +352,13 @@ ThreadTest5()
 void TestAlarm1(int time)
 {
 	printf("set %s %d\n", currentThread->getName(), time);
-	alarm->Pause(time);
+	Alarm::instance->Pause(time);
 }
 
 void TestAlarm(int time)
 {
 	printf("set %s %d\n", currentThread->getName(), time);
-	alarm->Pause(time);
+	Alarm::instance->Pause(time);
 	if(time==3)
 	{
 		Thread *tthread = new Thread("thread 3");
@@ -381,7 +381,7 @@ ThreadTest6()
 {
 
 	Thread *tthread[4];
-	alarm = new Alarm;
+	//alarm = new Alarm;
 	tthread[0] = new Thread("thread 0");
 	tthread[1] = new Thread("thread 1");
 	tthread[2] = new Thread("thread 2");
@@ -410,7 +410,7 @@ TestBridge(int whitch)
 {
 	int rand_time = Random() % 10;   //随机时间间隔
 	should_start_time += rand_time;
-	alarm->Pause(should_start_time);
+	Alarm::instance->Pause(should_start_time);
 	int start_time = stats->totalTicks;
 	int direc=Random() % 2;
 	printf("%s start at %d ticks in %d direction\n",currentThread->getName(),start_time,direc);
@@ -430,7 +430,7 @@ void
 ThreadTest7()
 {
 	bridge = new Bridge;
-	alarm = new Alarm;
+	//alarm = new Alarm;
 	for (int i = 0; i < Total_num; ++i)
 	{
 		char No[4] = "1";
