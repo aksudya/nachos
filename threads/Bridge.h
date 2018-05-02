@@ -8,6 +8,9 @@
 //#define ONE_DIRECTION	//同方向优化算法
 #define TRAFFIC_LIGHT	//红绿灯算法
 
+#ifdef TRAFFIC_LIGHT	
+void TrafficLightManager(int whitch);
+#endif
 
 
 class Bridge
@@ -47,6 +50,8 @@ private:
 #endif
 
 #ifdef TRAFFIC_LIGHT				//红绿灯算法
+	
+public:	
 	int on_bridge_num;
 	int current_direc;
     int next_switch_time;
@@ -64,7 +69,7 @@ private:
 
 	void switch_status();
 
-	Thread *management;
+	Thread *manager;                  //红绿灯管理进程
 #endif
 
 };

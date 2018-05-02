@@ -141,6 +141,25 @@ void Bridge::ExitBridge(int direc)
 
 
 #ifdef TRAFFIC_LIGHT	//红绿灯算法
+
+void TrafficLightManager(int whitch)
+{
+	Bridge::instance->lock->Acquire();
+	if (stats->totalTicks >= Bridge::instance->next_switch_time)
+	{
+		Bridge::instance->yellow_light_on = true;
+		if(Bridge::instance->on_bridge_num==0)
+		{
+			Bridge::instance->yellow_light_on = false;
+			Bridge::instance->switch_status();
+		}	
+	}
+	Bridge::instance->lock->Release();
+
+	currentThread->Yield();
+}
+
+
 Bridge::Bridge()
 {
 	lock = new Lock("bridge lock");
@@ -157,6 +176,9 @@ Bridge::Bridge()
 
 	direc_car_num[0] = 0;
 	direc_car_num[1] = 0;
+
+	manager = new Thread("traffic light manager thread");
+	manager->Fork(TrafficLightManager, 0);
 }
 
 
@@ -170,17 +192,7 @@ Bridge::~Bridge()
 
 void Bridge::ArriveBridge(int direc)
 {
-	lock->Acquire();
-
-	if (stats->totalTicks >= next_switch_time)
-	{
-		yellow_light_on = true;
-		if(on_bridge_num==0)
-		{
-			yellow_light_on = false;
-			switch_status();
-		}	
-	}
+	lock->Acquire();	
 
 	while (direc != current_direc || on_bridge_num >= 3 || yellow_light_on)
 	{
@@ -216,9 +228,8 @@ void Bridge::ExitBridge(int direc)
 
 void Bridge::switch_status()
 {
-
 	current_direc = (current_direc + 1) % 2;      //切换方向
-	next_switch_time = stats->totalTicks + direc_time[current_direc];	
+	
 	if(current_direc==0)
 	{
 		direc_time[0] = (direc_car_num[0] / 3 + 1)*CROSS_BRIDGE_TIME;
@@ -229,6 +240,11 @@ void Bridge::switch_status()
 			direc_time[1] = BASE_GREEN_LIGHT_TIME;
 		}
 	}
+    next_switch_time = stats->totalTicks + direc_time[current_direc];
+	printf("now switch the direc to %d\n%d ticks to next switch\n\n", 
+		current_direc, direc_time[current_direc]);
+
+	direc_con[current_direc]->Broadcast(lock);
 
 }
 
