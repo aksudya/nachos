@@ -139,14 +139,9 @@ void Lock::Release()
 	ASSERT(isHeldByCurrentThread());
 	
 	LockHoder = NULL;
-	//currentThread->Yield();
 	sem->V();
 	
-
-	inte->V();
-
-
-	
+	inte->V();	
 }
 
 bool Lock::isHeldByCurrentThread()

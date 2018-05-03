@@ -23,7 +23,7 @@ BoundedBuffer::~BoundedBuffer()
 void BoundedBuffer::Write(void* data, int size)
 {
 	lock->Acquire();	
-	while (maxsize-UsedSize<size)
+	while (maxsize-UsedSize<size)	//满等待
 	{
 		NotFull->Wait(lock);
 	}
@@ -31,8 +31,9 @@ void BoundedBuffer::Write(void* data, int size)
 	for(int i=0;i<size;i++)
 	{
 		*((char*)buffer+(FrontPlace+i)%maxsize)=*((char*)data+i);
+		//计算写入位置并把字节写入buffer
 	}
-	FrontPlace = (FrontPlace + size) % maxsize;
+	FrontPlace = (FrontPlace + size) % maxsize;//将前指针向前移动
 	UsedSize += size;
 	NotEmpty->Signal(lock);
 	lock->Release();
@@ -41,7 +42,7 @@ void BoundedBuffer::Write(void* data, int size)
 void BoundedBuffer::Read(void* data, int size)
 {
 	lock->Acquire();
-	while (UsedSize-size<0)
+	while (UsedSize-size<0)			//空等待
 	{
 		NotEmpty->Wait(lock);
 	}
@@ -49,8 +50,9 @@ void BoundedBuffer::Read(void* data, int size)
 	for(int i=0;i<size;i++)
 	{
 		*((char*)data+i)=*((char*)buffer+(BackPlace+i)%maxsize);
+		//计算移出位置并把字节读出buffer
 	}
-	BackPlace = (BackPlace + size) % maxsize;
+	BackPlace = (BackPlace + size) % maxsize;//将后部指针向前移动
 	UsedSize -= size;
 	NotFull->Signal(lock);
 	lock->Release();

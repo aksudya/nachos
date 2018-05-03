@@ -65,7 +65,8 @@ TestTable_producer(int which)
 		int *items = new int[1];
 		items[0] = key;
 		item = items;		
-		printf("%s in:%d %d\n", currentThread->getName(), table->Alloc(item), *(int*)item);
+		printf("%s in:%d %d\n", currentThread->getName(), 
+			table->Alloc(item), *(int*)item);
 		//currentThread->Yield();
 	}
 
@@ -88,8 +89,8 @@ TestTable_consumer(int which)
 			}
 		}		
 		table->Release(index);
-		printf("%s out:%d %d\n", currentThread->getName(), index, *(int*)item);
-		//currentThread->Yield();
+		printf("%s out:%d %d\n", currentThread->getName(), 
+			index, *(int*)item);
 	}
 }
 void
@@ -145,10 +146,8 @@ TestBuffer_producer(int which)
 		}
 		items[size] = '\0';
 		boundedbuffer->Write(items, size);
-		printf("%s in:%s\n size:%d usedsize:%d\n", currentThread->getName(), items,size,boundedbuffer->UsedSize );
-		//currentThread->Yield();
-
-		//currentThread->Yield();
+		printf("%s in:%s\n size:%d usedsize:%d\n", 
+			currentThread->getName(), items,size,boundedbuffer->UsedSize );
 	}
 
 }
@@ -162,7 +161,8 @@ TestBuffer_consumer(int which)
 		char *item= new char[size + 1];
 		boundedbuffer->Read(item, size);
 		item[size] = '\0';
-		printf("%s out:%s\n size:%d usedsize:%d\n", currentThread->getName(),  (char*)item,size,boundedbuffer->UsedSize);
+		printf("%s out:%s\n size:%d usedsize:%d\n", 
+			currentThread->getName(),  (char*)item,size,boundedbuffer->UsedSize);
 	}
 }
 
@@ -220,14 +220,12 @@ void
 ThreadTest3()
 {
 	DEBUG('t', "Entering ThreadTest3 ");
-	//list=new DLList();
 	table = new Table(TABLESIZE);
 	for (int var = 0; var < producersnum; var++)
 	{
 		char No[4]="1";
 		sprintf(No, "%d", var);
-		//char name[18]="forked thread ";	//error
-		char *name=new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+		char *name=new char[25];			
 		name[0]='\0';
 		strcat(name,"producer thread ");
 		strcat(name,No);
@@ -239,8 +237,7 @@ ThreadTest3()
 	{
 		char No[4] = "1";
 		sprintf(No, "%d", var);
-		//char name[18]="forked thread ";	//error
-		char *name = new char[25];			//必须分配新空间，否则新进程会覆盖掉原有name地址
+		char *name = new char[25];			
 		name[0] = '\0';
 		strcat(name, "consumer thread ");
 		strcat(name, No);

@@ -23,7 +23,8 @@ int Table::Alloc(void* object)
 	int re;	
 	lock->Acquire();
 	int NowIndex=0;
-	while (base[NowIndex]!=NULL&&NowIndex<TableSize)
+	while (base[NowIndex]!=NULL
+		&&NowIndex<TableSize)
 	{
 		NowIndex++;
 	}
@@ -56,6 +57,9 @@ void* Table::Get(int index)
 
 void Table::Release(int index)
 {
+	lock->Acquire();
+	ASSERT(index<TableSize);
 	base[index] = NULL;
+	lock->Release();
 }
 

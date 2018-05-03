@@ -47,7 +47,6 @@ class Table {
 	   int TableSize;
 	   Lock *lock;
 	   void **base;
-	   
-	
+	   	
 };
 
