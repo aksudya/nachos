@@ -144,22 +144,13 @@ void Bridge::ExitBridge(int direc)
 
 void TrafficLightManager(int whitch)
 {
-	while (true)
+	while (!Bridge::instance->finished)
 	{
-		Bridge::instance->lock->Acquire();
-		if (stats->totalTicks >= Bridge::instance->next_switch_time* TimerTicks)
-		{
-			Bridge::instance->yellow_light_on = true;
-			if (Bridge::instance->on_bridge_num == 0)
-			{
-				Bridge::instance->yellow_light_on = false;
-				Bridge::instance->switch_status();
-			}
-		}
-		Bridge::instance->lock->Release();
+		Bridge::instance->CheckIfDue();
 		currentThread->Yield();
 	}	
 }
+
 
 
 Bridge::Bridge()
@@ -183,6 +174,7 @@ Bridge::Bridge()
 
 	manager = new Thread("traffic light manager thread");
 	manager->Fork(TrafficLightManager, 0);
+	finished=false;
 }
 
 
@@ -196,6 +188,7 @@ Bridge::~Bridge()
 
 void Bridge::ArriveBridge(int direc)
 {
+	CheckIfDue();
 	lock->Acquire();	
 
 	while (direc != current_direc || on_bridge_num >= 3 || yellow_light_on)
@@ -214,19 +207,36 @@ void Bridge::ArriveBridge(int direc)
 
 void Bridge::CrossBridge(int direc)
 {
-	printf("%s car is crossing the bridge in %d direc\n%d cars on the bridge\n"
+	printf(">>>%s car is crossing the bridge in %d direc\n>>>%d cars on the bridge\n\n"
 		, currentThread->getName(), direc, on_bridge_num);
 	Alarm::instance->Pause(CROSS_BRIDGE_TIME);
 }
 
 void Bridge::ExitBridge(int direc)
 {
+
 	lock->Acquire();
 
 	on_bridge_num--;
-	printf("%s car leave the bridge\n", currentThread->getName());
+	printf("---%s car leave the bridge at %d\n", currentThread->getName(), stats->totalTicks);
 	direc_con[direc]->Broadcast(lock);
 
+	lock->Release();
+	CheckIfDue();
+}
+
+void Bridge::CheckIfDue()
+{
+	lock->Acquire();
+	if (stats->totalTicks >= next_switch_time)
+	{
+		yellow_light_on = true;
+		if (on_bridge_num == 0)
+		{
+			yellow_light_on = false;
+			switch_status();
+		}
+	}
 	lock->Release();
 }
 
@@ -244,10 +254,11 @@ void Bridge::switch_status()
 			direc_time[1] = BASE_GREEN_LIGHT_TIME;
 		}
 	}
-    next_switch_time = stats->totalTicks + direc_time[current_direc];
-	printf("**********************\nnow switch the direc to %d\n%d ticks to next switch\n**********************\n", 
+    next_switch_time = stats->totalTicks + direc_time[current_direc]* TimerTicks;
+	printf("\n**********************\nnow switch the direc to %d\n%d ticks to next switch\n",
 		current_direc, direc_time[current_direc]* TimerTicks);
-
+	printf("next switch at %d ticks\n", next_switch_time);
+	printf("0 wait cars %d\t1 wait cars %d\n**********************\n\n", direc_car_num[0],direc_car_num[1]);
 	direc_con[current_direc]->Broadcast(lock);
 
 }
