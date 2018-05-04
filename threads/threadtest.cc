@@ -17,7 +17,6 @@
 #include "EventBarrier.h"
 #include "Alarm.h"
 #include "Bridge.h"
-#include "../machine/sysdep.h"
 
 #define TABLESIZE 100000
 #define BOUNDEDBUFFERSIZE 1000

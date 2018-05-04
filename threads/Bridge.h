@@ -63,7 +63,7 @@ public:
 
 	int direc_time[2];
 	//int direc_0_time;
-	//int direc_1_time;               //方向0或者方向1的剩余绿灯时间，-1代表红灯
+	//int direc_1_time;               //方向0或者方向1的剩余绿灯时间
 
 	int direc_car_num[2];
 

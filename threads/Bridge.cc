@@ -171,6 +171,8 @@ Bridge::Bridge()
 
 	next_switch_time = 0;
 
+	yellow_light_on = false;
+
 	direc_time[0] = BASE_GREEN_LIGHT_TIME;
 	direc_time[1] = BASE_GREEN_LIGHT_TIME;
 
