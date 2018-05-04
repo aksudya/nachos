@@ -352,12 +352,14 @@ void TestAlarm1(int time)
 {
 	printf("set %s %d\n", currentThread->getName(), time);
 	Alarm::instance->Pause(time);
+	printf("%s wake up at %d ticks\n", currentThread->getName(), stats->totalTicks);
 }
 
 void TestAlarm(int time)
 {
 	printf("set %s %d\n", currentThread->getName(), time);
 	Alarm::instance->Pause(time);
+	printf("%s wake up at %d ticks\n", currentThread->getName(), stats->totalTicks);
 	if(time==3)
 	{
 		Thread *tthread = new Thread("thread 3");
