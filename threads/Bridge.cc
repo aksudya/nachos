@@ -147,7 +147,7 @@ void TrafficLightManager(int whitch)
 	while (true)
 	{
 		Bridge::instance->lock->Acquire();
-		if (stats->totalTicks >= Bridge::instance->next_switch_time)
+		if (stats->totalTicks >= Bridge::instance->next_switch_time* TimerTicks)
 		{
 			Bridge::instance->yellow_light_on = true;
 			if (Bridge::instance->on_bridge_num == 0)
