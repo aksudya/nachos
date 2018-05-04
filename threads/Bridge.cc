@@ -144,19 +144,21 @@ void Bridge::ExitBridge(int direc)
 
 void TrafficLightManager(int whitch)
 {
-	Bridge::instance->lock->Acquire();
-	if (stats->totalTicks >= Bridge::instance->next_switch_time)
+	while (true)
 	{
-		Bridge::instance->yellow_light_on = true;
-		if(Bridge::instance->on_bridge_num==0)
+		Bridge::instance->lock->Acquire();
+		if (stats->totalTicks >= Bridge::instance->next_switch_time)
 		{
-			Bridge::instance->yellow_light_on = false;
-			Bridge::instance->switch_status();
-		}	
-	}
-	Bridge::instance->lock->Release();
-
-	currentThread->Yield();
+			Bridge::instance->yellow_light_on = true;
+			if (Bridge::instance->on_bridge_num == 0)
+			{
+				Bridge::instance->yellow_light_on = false;
+				Bridge::instance->switch_status();
+			}
+		}
+		Bridge::instance->lock->Release();
+		currentThread->Yield();
+	}	
 }
 
 
@@ -243,7 +245,7 @@ void Bridge::switch_status()
 		}
 	}
     next_switch_time = stats->totalTicks + direc_time[current_direc];
-	printf("now switch the direc to %d\n%d ticks to next switch\n\n", 
+	printf("**********************\nnow switch the direc to %d\n%d ticks to next switch\n**********************\n", 
 		current_direc, direc_time[current_direc]* TimerTicks);
 
 	direc_con[current_direc]->Broadcast(lock);
