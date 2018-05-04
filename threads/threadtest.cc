@@ -402,7 +402,7 @@ ThreadTest6()
 // ThreadTest7 -h 
 //  test bridge
 //----------------------------------------------------------------------
-int Total_num=10;
+int Total_num=100;
 int sumtime=0;
 int End_num=0;
 int should_start_time = 0;    //当前进程应当开始的时间

@@ -244,7 +244,7 @@ void Bridge::switch_status()
 	}
     next_switch_time = stats->totalTicks + direc_time[current_direc];
 	printf("now switch the direc to %d\n%d ticks to next switch\n\n", 
-		current_direc, direc_time[current_direc]);
+		current_direc, direc_time[current_direc]* TimerTicks);
 
 	direc_con[current_direc]->Broadcast(lock);
 
