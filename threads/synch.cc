@@ -67,7 +67,8 @@ Semaphore::P()
     IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
     
     while (value == 0) { 			// semaphore not available
-	queue->Append((void *)currentThread);	// so go to sleep
+	//queue->Append((void *)currentThread);	// so go to sleep
+	queue->SortedInsert((void *)currentThread, currentThread->getpriority());	// so go to sleep
 	currentThread->Sleep();
     } 
     value--; 					// semaphore available, 
@@ -118,8 +119,7 @@ Lock::~Lock()
 }
 
 void Lock::Acquire()
-{
-	//inte->P();		// 用来替代关中断  	
+{	
 
 	ASSERT(!isHeldByCurrentThread());
 
@@ -128,7 +128,6 @@ void Lock::Acquire()
 	LockHoder = currentThread;
 
 
-	//inte->V();		// 用来替代开中断
 }
 
 void Lock::Release()
@@ -139,9 +138,14 @@ void Lock::Release()
 	ASSERT(isHeldByCurrentThread());
 	
 	LockHoder = NULL;
+	//currentThread->Yield();
 	sem->V();
 	
-	inte->V();	
+
+	inte->V();
+
+
+	
 }
 
 bool Lock::isHeldByCurrentThread()
@@ -231,7 +235,7 @@ void Lock::Acquire()
 
 	while (LockHoder!=NULL)
 	{
-		LockQune->Append((void *)currentThread);
+		queue->SortedInsert((void *)currentThread, currentThread->getpriority());	// so go to sleep
 		currentThread->Sleep();
 	}
 	LockHoder = currentThread;
@@ -280,7 +284,7 @@ void Condition::Wait(Lock* conditionLock)
 	//ASSERT(FALSE);
 
 	conditionLock->Release();
-	ConditionQueue->Append((void *)currentThread);
+	queue->SortedInsert((void *)currentThread, currentThread->getpriority());	// so go to sleep
 	currentThread->Sleep();
 
 	conditionLock->Acquire();
