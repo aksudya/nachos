@@ -402,19 +402,25 @@ ThreadTest6()
 // ThreadTest7 -h 
 //  test bridge
 //----------------------------------------------------------------------
-int Total_num=500;
+int Total_num=100;
 int sumtime=0;
 int End_num=0;
-int should_start_time = 0;    //当前进程应当开始的时间
+int should_start_time = 0;    	//当前进程应当开始的时间
+int direc_0_percent=3;			//0方向占的比例，	x/10
 
 void
 TestBridge(int whitch)
 {
-	int rand_time = Random() % 5;   //随机时间间隔
+	int rand_time = Random() % 10;   //随机时间间隔
 	should_start_time += rand_time;
 	Alarm::instance->Pause(should_start_time);
 	int start_time = stats->totalTicks;
-	int direc=Random() % 2;
+	int rand=Random() % 10;
+	int direc;
+	if(rand<direc_0_percent)
+		direc=0;
+	else
+		direc=1;
 	printf("+++%s start at %d ticks in %d direction\n\n",currentThread->getName(),start_time,direc);
 	Bridge::instance->OneVehicle(direc);
 	printf("---%s costs %d\n\n", currentThread->getName(), stats->totalTicks - start_time);

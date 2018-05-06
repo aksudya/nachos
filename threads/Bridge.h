@@ -62,8 +62,6 @@ public:
 	Lock *lock;
 	Condition *direc_con[2];
 
-	int direc_time[2];				//方向0或者方向1的剩余绿灯时间
-
 	int direc_car_num[2];
 
 	void switch_status();
