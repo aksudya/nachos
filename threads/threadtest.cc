@@ -421,6 +421,7 @@ TestBridge(int whitch)
 		direc=0;
 	else
 		direc=1;
+
 	printf("+++%s start at %d ticks in %d direction\n\n",currentThread->getName(),start_time,direc);
 	Bridge::instance->OneVehicle(direc);
 	printf("---%s costs %d\n\n", currentThread->getName(), stats->totalTicks - start_time);

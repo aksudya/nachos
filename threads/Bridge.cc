@@ -241,12 +241,13 @@ void Bridge::CheckIfDue()
 void Bridge::switch_status()
 {
 	current_direc = (current_direc + 1) % 2;      //切换方向
-    next_switch_time = stats->totalTicks + BASE_GREEN_LIGHT_TIME* TimerTicks;
+  next_switch_time = stats->totalTicks + BASE_GREEN_LIGHT_TIME* TimerTicks;
 	printf("\n**************************************\n");
 	printf("now switch the direc to %d\n",current_direc);
 	printf("next switch at %d ticks\n", next_switch_time);
 	printf("0 wait cars %d\t1 wait cars %d", direc_car_num[0],direc_car_num[1]);
 	printf("\n**************************************\n\n");
+
 	direc_con[current_direc]->Broadcast(lock);
 
 }

@@ -55,7 +55,7 @@ private:
 public:	
 	int on_bridge_num;
 	int current_direc;
-    int next_switch_time;
+  int next_switch_time;
 	
 	bool yellow_light_on;	
 
