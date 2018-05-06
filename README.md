@@ -25,18 +25,18 @@
 
 在Bridge.h头文件中修改宏定义
 ```c++
-#define FCFS					      //先来先服务算法
-#define ONE_DIRECTION			  //同方向优化算法
-#define BASIC_TRAFFIC_LIGHT	//基础版红绿灯算法
-#define ADV_TRAFFIC_LIGHT		//改进版红绿灯算法（动态调节）
+#define FCFS                  //先来先服务算法
+#define ONE_DIRECTION         //同方向优化算法
+#define BASIC_TRAFFIC_LIGHT   //基础版红绿灯算法
+#define ADV_TRAFFIC_LIGHT     //改进版红绿灯算法（动态调节）
 ```
 将除你想测试的算法之外的宏定义注释掉即可
 
 在threadtest.cc文件中可以修改对应的测试参数
 ```c++
-int Total_num=100;				    //总测试的车辆数
-int direc_0_percent=3;			  //0方向来的车占的比例，	x/10
-int random_come_time = 10;		//车辆生成的随机时间间隔 即random()%x
+int Total_num=100;            //总测试的车辆数
+int direc_0_percent=3;        //0方向来的车占的比例，	x/10
+int random_come_time = 10;    //车辆生成的随机时间间隔 即random()%x
 ```
 可对bridge进行不同测试
 
