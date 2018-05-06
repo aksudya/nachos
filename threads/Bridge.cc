@@ -1,5 +1,6 @@
 #include "Bridge.h"
 #include "Alarm.h"
+#include "../machine/stats.h"
 
 //extern Alarm *alarm;
 
@@ -55,8 +56,8 @@ void Bridge::ArriveBridge(int direc)
 
 void Bridge::CrossBridge(int direc)
 {
-	printf("%s car is crossing the bridge in %d direc\n%d cars on the bridge\n"
-		, currentThread->getName(), direc, on_bridge_num);
+	printf(">>>%s car is crossing the bridge in %d direc\n", currentThread->getName(), direc);
+	printf(">>>%d cars on the bridge\n\n", on_bridge_num);
 	Alarm::instance->Pause(CROSS_BRIDGE_TIME);
 }
 
@@ -65,7 +66,7 @@ void Bridge::ExitBridge(int direc)
 	lock->Acquire();
 
 	on_bridge_num--;
-	printf("%s car leave the bridge\n", currentThread->getName());
+	printf("---%s car leave the bridge\n", currentThread->getName());
 	con->Broadcast(lock);
 
 
@@ -117,8 +118,8 @@ void Bridge::ArriveBridge(int direc)
 
 void Bridge::CrossBridge(int direc)
 {
-	printf("%s car is crossing the bridge in %d direc\n%d cars on the bridge\n"
-		,currentThread->getName(), direc,on_bridge_num);
+	printf(">>>%s car is crossing the bridge in %d direc\n", currentThread->getName(), direc);
+	printf(">>>%d cars on the bridge\n\n", on_bridge_num);
 	Alarm::instance->Pause(CROSS_BRIDGE_TIME);
 }
 
@@ -127,7 +128,7 @@ void Bridge::ExitBridge(int direc)
 	lock->Acquire();
 
 	on_bridge_num--;
-    printf("%s car leave the bridge\n",currentThread->getName());
+    printf("---%s car leave the bridge\n",currentThread->getName());
 	con->Broadcast(lock);
 
 
@@ -140,7 +141,7 @@ void Bridge::ExitBridge(int direc)
 #endif
 
 
-#ifdef TRAFFIC_LIGHT	//红绿灯算法
+#ifdef BASIC_TRAFFIC_LIGHT		//基础版红绿灯算法
 
 void TrafficLightManager(int whitch)
 {
@@ -165,9 +166,6 @@ Bridge::Bridge()
 	next_switch_time = 0;
 
 	yellow_light_on = false;
-
-	direc_time[0] = BASE_GREEN_LIGHT_TIME;
-	direc_time[1] = BASE_GREEN_LIGHT_TIME;
 
 	direc_car_num[0] = 0;
 	direc_car_num[1] = 0;
@@ -207,8 +205,8 @@ void Bridge::ArriveBridge(int direc)
 
 void Bridge::CrossBridge(int direc)
 {
-	printf(">>>%s car is crossing the bridge in %d direc\n>>>%d cars on the bridge\n\n"
-		, currentThread->getName(), direc, on_bridge_num);
+	printf(">>>%s car is crossing the bridge in %d direc\n", currentThread->getName(), direc);
+	printf(">>>%d cars on the bridge\n\n", on_bridge_num);
 	Alarm::instance->Pause(CROSS_BRIDGE_TIME);
 }
 
@@ -243,26 +241,154 @@ void Bridge::CheckIfDue()
 void Bridge::switch_status()
 {
 	current_direc = (current_direc + 1) % 2;      //切换方向
-	
-	if(current_direc==0)
-	{
-		direc_time[0] = (direc_car_num[0] / 3 + 1)*CROSS_BRIDGE_TIME;
-		direc_time[1] = (direc_car_num[1] / 3 + 1)*CROSS_BRIDGE_TIME;
-		if(direc_car_num[0] ==0 && direc_car_num[1]==0)
-		{
-			direc_time[0] = BASE_GREEN_LIGHT_TIME;
-			direc_time[1] = BASE_GREEN_LIGHT_TIME;
-		}
-	}
-    next_switch_time = stats->totalTicks + direc_time[current_direc]* TimerTicks;
-	printf("\n**********************\nnow switch the direc to %d\n%d ticks to next switch\n",
-		current_direc, direc_time[current_direc]* TimerTicks);
+  next_switch_time = stats->totalTicks + BASE_GREEN_LIGHT_TIME* TimerTicks;
+	printf("\n**************************************\n");
+	printf("now switch the direc to %d\n",current_direc);
 	printf("next switch at %d ticks\n", next_switch_time);
-	printf("0 wait cars %d\t1 wait cars %d\n**********************\n\n", direc_car_num[0],direc_car_num[1]);
+	printf("0 wait cars %d\t1 wait cars %d", direc_car_num[0],direc_car_num[1]);
+	printf("\n**************************************\n\n");
+
 	direc_con[current_direc]->Broadcast(lock);
 
 }
 
+#endif
 
+#ifdef ADV_TRAFFIC_LIGHT		//改进版红绿灯算法（动态调节）
+
+void TrafficLightManager(int whitch)
+{
+	while (!Bridge::instance->finished)
+	{
+		Bridge::instance->lock->Acquire();
+		Bridge::instance->CheckIfDue();
+		Bridge::instance->lock->Release();
+		currentThread->Yield();
+	}
+}
+
+Bridge::Bridge()
+{
+	lock = new Lock("bridge lock");
+	direc_con[0] = new Condition("direc 0 condition");
+	direc_con[1] = new Condition("direc 1 condition");
+
+	on_bridge_num = 0;
+	current_direc = 1;		//默认0方向先行,由于最开始要切换一次方向，故先设成1
+
+	yellow_light_on = false;
+	next_switch_time = 0;
+
+	direc_car_num[0] = 0;
+	direc_car_num[1] = 0;
+
+	direc_car_can_go[0] = 0;
+	direc_car_can_go[1] = 0;
+
+	finished = false;
+	switchCount = 0;
+
+	manager = new Thread("traffic light manager thread");
+	manager->Fork(TrafficLightManager, 0);
+}
+
+
+
+Bridge::~Bridge()
+{
+	delete lock;
+	delete direc_con[0];
+	delete direc_con[1];
+}
+
+void Bridge::ArriveBridge(int direc)
+{
+	lock->Acquire();
+	direc_car_num[direc]++;
+	//CheckIfDue();
+	while (direc != current_direc || on_bridge_num >= 3 || yellow_light_on ||(direc_car_can_go[direc]<=0 && switchCount>1))
+	{
+		CheckIfDue();
+		direc_con[direc]->Wait(lock);
+	}
+	if(switchCount<=1)
+	{
+		direc_car_num[direc]--;
+	}
+	direc_car_can_go[direc]--;
+	
+	on_bridge_num++;
+
+	lock->Release();
+}
+
+void Bridge::CrossBridge(int direc)
+{
+	printf(">>>%s car is crossing the bridge in %d direc\n", currentThread->getName(), direc);
+	printf(">>>%d cars on the bridge\n\n", on_bridge_num);
+
+	Alarm::instance->Pause(CROSS_BRIDGE_TIME);
+}
+
+void Bridge::ExitBridge(int direc)
+{
+
+	lock->Acquire();
+
+	on_bridge_num--;
+	printf("---%s car leave the bridge at %d\n", currentThread->getName(), stats->totalTicks);
+	direc_con[direc]->Broadcast(lock);
+	CheckIfDue();
+	lock->Release();
+
+}
+
+void Bridge::CheckIfDue()
+{
+	//lock->Acquire();
+	if (switchCount<=1)
+	{
+		if (stats->totalTicks >= next_switch_time)
+		{
+			yellow_light_on = true;
+			if (on_bridge_num == 0)
+			{
+				yellow_light_on = false;
+				switch_status();
+			}
+		}
+	}
+	else if (direc_car_can_go[current_direc]<=0)
+	{
+		yellow_light_on = true;
+		if (on_bridge_num == 0)
+		{
+			yellow_light_on = false;
+			switch_status();
+		}
+	}
+	//lock->Release();
+}
+
+void Bridge::switch_status()
+{
+	current_direc = (current_direc + 1) % 2;      //切换方向
+
+	if (current_direc == 0)
+	{
+		switchCount++;
+		direc_car_can_go[0] = direc_car_num[0];
+		direc_car_can_go[1] = direc_car_num[1];
+		direc_car_num[0] = 0;
+		direc_car_num[1] = 0;
+	}
+	next_switch_time = stats->totalTicks + BASE_GREEN_LIGHT_TIME * TimerTicks;
+	printf("\n**********************\n");
+	printf("now switch the direc to %d\n",current_direc);
+	printf("%d cars to next switch\n",direc_car_can_go[current_direc]);
+	printf("0 come cars %d\t1 come cars %d", direc_car_can_go[0], direc_car_can_go[1]);
+	printf("\n**********************\n\n");
+	direc_con[current_direc]->Broadcast(lock);
+}
 
 #endif
