@@ -423,7 +423,7 @@ TestBridge(int whitch)
 	if(End_num==Total_num)
 	{
 		printf("\n------avg turnaround time %.2f------\n\n",(float)sumtime/Total_num);
-#ifdef TRAFFIC_LIGHT
+#if (defined BASIC_TRAFFIC_LIGHT )||(defined ADV_TRAFFIC_LIGHT )
 		Bridge::instance->finished=true;
 #endif
 	}
