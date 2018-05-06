@@ -28,7 +28,7 @@
 
 此处版本包括实验二附加题
 
-[不包括附加题的版本](https://github.com/aksudya/nachos/tree/a062b3aa5994e5e0ccb91331e23af3ff3ebdcfe4)
+[不包括附加题的版本](https://github.com/aksudya/nachos/tree/lab2_without_extra_creadit)
 
 使用方法：编译后cd到threads目录下使用
 
