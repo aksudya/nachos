@@ -402,16 +402,19 @@ ThreadTest6()
 // ThreadTest7 -h 
 //  test bridge
 //----------------------------------------------------------------------
-int Total_num=100;
+int Total_num=100;				//总测试的车辆数
+int direc_0_percent=3;			//0方向占的比例，	x/10
+int random_come_time = 10;		//随机时间间隔
+
 int sumtime=0;
 int End_num=0;
 int should_start_time = 0;    	//当前进程应当开始的时间
-int direc_0_percent=3;			//0方向占的比例，	x/10
+
 
 void
 TestBridge(int whitch)
 {
-	int rand_time = Random() % 10;   //随机时间间隔
+	int rand_time = Random() % random_come_time;   //随机时间间隔
 	should_start_time += rand_time;
 	Alarm::instance->Pause(should_start_time);
 	int start_time = stats->totalTicks;
