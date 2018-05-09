@@ -60,7 +60,7 @@ extern void Cleanup();
 static void
 TimerInterruptHandler(int dummy)
 {
-	Alarm::instance->CheckIfDue();
+	Alarm::instance->CheckIfDue(dummy);
     if (interrupt->getStatus() != IdleMode)
 	interrupt->YieldOnReturn();
 }
@@ -138,7 +138,7 @@ Initialize(int argc, char **argv)
     if (randomYield)				// start the timer (if needed)
 		timer = new Timer(TimerInterruptHandler, 0, randomYield);
     else
-		timer = new Timer(Alarm::instance->CheckIfDue(), 0, false);
+		timer = new Timer(Alarm::instance->CheckIfDue, 0, false);
 
     threadToBeDestroyed = NULL;
 
