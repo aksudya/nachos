@@ -11,7 +11,7 @@ public:
 	Alarm();
 	~Alarm();
 	void Pause(int howLong);
-	DLList * queue;
+	DLList *queue;
 	//Timer *timer;
 	int waiters;
 	void CheckIfDue();	

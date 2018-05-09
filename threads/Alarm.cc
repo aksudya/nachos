@@ -1,6 +1,6 @@
 #include "Alarm.h"
 
-Alarm * Alarm::instance;
+Alarm *Alarm::instance;
 
 void Alarm::new_instance()
 {
