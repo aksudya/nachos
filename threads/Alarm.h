@@ -14,7 +14,7 @@ public:
 	DLList * queue;
 	//Timer *timer;
 	int waiters;
-	void CheckIfDue(int dummy);	//dummy仅为占位
+	void CheckIfDue();	
 	
 	static void new_instance();
 	static Alarm *instance;

@@ -51,7 +51,7 @@ void check(int which)
 }
 
 
-void Alarm::CheckIfDue(int dummy)
+void Alarm::CheckIfDue()
 {
 	int duetime=-1;
 	Thread *thread=NULL;
