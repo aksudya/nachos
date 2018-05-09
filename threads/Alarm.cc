@@ -10,14 +10,14 @@ void Alarm::new_instance()
 Alarm::Alarm()
 {
 	queue = new DLList;
-	timer = new Timer(timerhandler, 0, false);
+	//timer = new Timer(timerhandler, 0, false);
 	waiters = 0;
 }
 
 Alarm::~Alarm()
 {
 	delete queue;
-	delete timer;
+	//delete timer;
 }
 
 void Alarm::Pause(int howLong)	//howlong单位为中断次数
@@ -51,28 +51,28 @@ void check(int which)
 }
 
 
-void timerhandler(int dummy)		//dummy 仅为占位，不需要用到这个参数
+void Alarm::CheckIfDue()
 {
 	int duetime=-1;
 	Thread *thread=NULL;
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);	//必须关中断
-	thread = (Thread *)Alarm::instance->queue->Remove(&duetime);
+	thread = (Thread *)queue->Remove(&duetime);
 	while (thread!= NULL)
 	{
 		if (duetime - stats->totalTicks <= 0)
 		{
 			//IntStatus oldLevel = interrupt->SetLevel(IntOff);
-			Alarm::instance->waiters--;
+			waiters--;
 			scheduler->ReadyToRun(thread);
 			//printf("%s wake up!\n",thread->getName());	 	//debug使用
-			thread = (Thread *)Alarm::instance->queue->Remove(&duetime);
+			thread = (Thread *)queue->Remove(&duetime);
 
 			//(void)interrupt->SetLevel(oldLevel);
 
 		}
 		else
 		{
-			Alarm::instance->queue->SortedInsert((void *)thread,duetime);
+			queue->SortedInsert((void *)thread,duetime);
 			//printf("%d Ticks remains\n%d threads remains\n\n",
 				//duetime-stats->totalTicks, Alarm::instance->waiters);     //debug使用
 			break;

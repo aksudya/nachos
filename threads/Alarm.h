@@ -12,8 +12,9 @@ public:
 	~Alarm();
 	void Pause(int howLong);
 	DLList * queue;
-	Timer *timer;
+	//Timer *timer;
 	int waiters;
+	void CheckIfDue();
 	
 	static void new_instance();
 	static Alarm *instance;

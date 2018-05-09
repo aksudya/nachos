@@ -382,7 +382,7 @@ ThreadTest6()
 {
 
 	Thread *tthread[4];
-	Alarm::new_instance();
+	//Alarm::new_instance();
 	//alarm = new Alarm;
 	tthread[0] = new Thread("thread 0");
 	tthread[1] = new Thread("thread 1");
