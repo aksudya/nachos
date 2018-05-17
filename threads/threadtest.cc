@@ -17,6 +17,8 @@
 #include "EventBarrier.h"
 #include "Alarm.h"
 #include "Bridge.h"
+#include "Elevator.h"
+#include "../machine/sysdep.h"
 
 #define TABLESIZE 100000
 #define BOUNDEDBUFFERSIZE 1000
@@ -460,8 +462,65 @@ ThreadTest7()
 	}
 
 }
+//----------------------------------------------------------------------
+// ThreadTest7 -i 
+//  test elevator
+//----------------------------------------------------------------------
+int num_floors = 5;						//楼层数
+int total_riders = 100;					//生成的总乘客数
+int E_random_come_time = 10;			//随机时间间隔
 
+int E_sumtime = 0;
+int E_End_num = 0;
+int E_should_start_time = 0;    	//当前进程应当开始的时间
 
+void
+TestElevatorRider(int whitch)
+{
+	int srcfloor = Random() % num_floors;
+	int dstfloor = Random() % num_floors;
+	int rand_time = Random() % E_random_come_time;   //随机时间间隔
+	E_should_start_time += rand_time;
+	Alarm::instance->Pause(E_should_start_time);
+	int start_time = stats->totalTicks;	
+	printf("+++%s start at %d ticks from %d floor to %d floor\n\n"
+		, currentThread->getName(), start_time, srcfloor,dstfloor);
+	rider(whitch, srcfloor, dstfloor);
+	printf("---%s costs %d\n\n", currentThread->getName(), stats->totalTicks - start_time);
+	E_sumtime += stats->totalTicks - start_time;
+	E_End_num++;
+	if (E_End_num == total_riders)
+	{
+		printf("\n------avg turnaround time %.2f------\n\n", (float)E_sumtime / total_riders);
+	}
+}
+
+void
+TestElevatorControl(int whitch)
+{
+	Building::instance->getElevator()->ElevatorControl();
+}
+
+void
+ThreadTest8()
+{
+	Building::new_instance("building", num_floors,1);
+	Thread *t = new Thread("elevator Control");
+	t->Fork(TestElevatorControl, 0);
+	for (int i = 0; i < total_riders; ++i)
+	{
+		char No[4] = "1";
+		sprintf(No, "%d", i);
+		char *name = new char[25];
+		name[0] = '\0';
+		strcat(name, "rider ");
+		strcat(name, No);
+
+		Thread *t = new Thread(name);
+		t->Fork(TestElevatorRider, i);
+	}
+
+}
 
 //----------------------------------------------------------------------
 // ThreadTest
@@ -492,6 +551,9 @@ ThreadTest()
 	break;
 	case 7:
 	ThreadTest7();
+	break;
+	case 8:
+	ThreadTest8();
 	break;
     default:
 	printf("No test specified.\n");

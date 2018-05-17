@@ -20,11 +20,8 @@ void EventBarrier::Signal()
 {
 	lock->Acquire();
 	signaled = true;
-	if(waiternum!=0)
-	{
-		comp->Wait(lock);		
-	}
 	event->Broadcast(lock);	
+	comp->Wait(lock);
 	signaled = false;
 	//this->Wait();
 	//comp->Wait(lock);	
@@ -34,12 +31,12 @@ void EventBarrier::Signal()
 void EventBarrier::Wait()
 {
 	lock->Acquire();
+	waiternum++;
 	if(signaled)
 	{
 		lock->Release();
 		return;
 	}
-	waiternum++;
 	event->Wait(lock);	
 	lock->Release();
 }

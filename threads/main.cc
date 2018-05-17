@@ -135,6 +135,10 @@ main(int argc, char **argv)
 		  testnum = 7;
 		  argCount++;
 		  break;
+	  case 'i':
+		  testnum = 8;
+		  argCount++;
+		  break;
       default:
         testnum = 1;
         break;
