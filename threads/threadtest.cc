@@ -18,7 +18,6 @@
 #include "Alarm.h"
 #include "Bridge.h"
 #include "Elevator.h"
-#include "../machine/sysdep.h"
 
 #define TABLESIZE 100000
 #define BOUNDEDBUFFERSIZE 1000
@@ -466,9 +465,9 @@ ThreadTest7()
 // ThreadTest7 -i 
 //  test elevator
 //----------------------------------------------------------------------
-int num_floors = 5;						//楼层数
-int total_riders = 100;					//生成的总乘客数
-int E_random_come_time = 10;			//随机时间间隔
+int num_floors = 10;						//楼层数
+int total_riders = 25;					//生成的总乘客数
+int E_random_come_time = 5;			//随机时间间隔
 
 int E_sumtime = 0;
 int E_End_num = 0;

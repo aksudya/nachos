@@ -157,7 +157,7 @@ bool Lock::isHeldByCurrentThread()
 Condition::Condition(char* debugName)
 {
 	name = debugName;
-	sem = new Semaphore("LockSemaphore", 1);
+	sem = new Semaphore("LockSemaphore", 0);
 	inte = new Semaphore("InterruptSemaphore", 1);
 	blockNum = 0;
 }

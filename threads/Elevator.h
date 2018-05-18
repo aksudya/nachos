@@ -13,6 +13,7 @@ existing interfaces.
 #define OPEN_AND_CLOSE_DOOR     20		//电梯开关门的时间
 #define RIDER_ENTER_OUT           10	//一个乘客进出电梯的时间
 #define ELEVATOR_MOVE_ONE_FLOOR 40		//电梯移动一层楼的时间
+#define ELEVATOR_CAPACITY		6		//电梯容量
 
 enum ElevatorState {UP,DOWN,STOP};
 void rider(int id, int srcFloor, int dstFloor);

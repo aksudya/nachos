@@ -31,11 +31,13 @@ Building::~Building()
 
 Elevator* Building::AwaitDown(int fromFloor)
 {
+	elevator->ElevatorDownBarrier[fromFloor]->Wait();
 	return elevator;
 }
 
 Elevator* Building::AwaitUp(int fromFloor)
 {
+	elevator->ElevatorUpBarrier[fromFloor]->Wait();
 	return elevator;
 }
 
@@ -43,7 +45,6 @@ void Building::CallDown(int fromFloor)
 {
 	elevator->ElevatorLock->Acquire();
 	elevator->HaveRequest->Signal(elevator->ElevatorLock);
-	elevator->ElevatorDownBarrier[fromFloor]->Wait();
 	elevator->ElevatorLock->Release();
 }
 
@@ -51,7 +52,6 @@ void Building::CallUp(int fromFloor)
 {
 	elevator->ElevatorLock->Acquire();
 	elevator->HaveRequest->Signal(elevator->ElevatorLock);
-	elevator->ElevatorUpBarrier[fromFloor]->Wait();
 	elevator->ElevatorLock->Release();
 }
 
@@ -75,6 +75,7 @@ Elevator::Elevator(char* debugName, int numFloors, int myID)
 	currentfloor = 0;
 
 	HaveRequest = new Condition("have a elevator requset");
+	occupancy=0;
 }
 
 Elevator::~Elevator()
@@ -95,6 +96,7 @@ Elevator::~Elevator()
 void Elevator::OpenDoors()
 {
 	Alarm::instance->Pause(OPEN_AND_CLOSE_DOOR);
+	printf("now elevator open door\n");
 	if(ElevatorOutBarrier[currentfloor]->Waiters()!=0)
 	{
 		ElevatorOutBarrier[currentfloor]->Signal();
@@ -139,13 +141,24 @@ bool Elevator::Enter()
 	{
 		ElevatorDownBarrier[currentfloor]->Complete();
 	}
-	return true;
+	occupancy++;
+	if(occupancy<=ELEVATOR_CAPACITY)
+	{
+		return true;
+	}
+	else
+	{
+		occupancy--;
+		return false;
+	}
+
 }
 
 void Elevator::Exit()
 {
 	Alarm::instance->Pause(RIDER_ENTER_OUT);
 	ElevatorOutBarrier[currentfloor]->Complete();
+	occupancy--;
 }
 
 void Elevator::RequestFloor(int floor)
@@ -159,46 +172,24 @@ int Elevator::GetNextFloor()
 	int return_value=-1;
 	if(state==STOP)
 	{
-		int up_request_floor=-1;
-		int down_request_floor=-1;
-		for (int i = currentfloor; i < numFloors; ++i)
+		for (int i = 0; i < numFloors; ++i)
 		{
-			if(ElevatorUpBarrier[i]->Waiters()!=0)
+			if(ElevatorUpBarrier[i]->Waiters() != 0 || ElevatorDownBarrier[i]->Waiters() != 0)
 			{
-				up_request_floor = i;
+				return_value=i;
 				break;
 			}
 		}
-		for (int i = currentfloor; i >= 0; --i)
+		if(return_value!=-1)
 		{
-			if(ElevatorDownBarrier[i]->Waiters()!=0)
+			if(return_value>currentfloor)
 			{
-				down_request_floor = i;
-				break;
+				state=UP;
 			}
-		}
-		if (up_request_floor == -1)
-		{
-			state = DOWN;
-			return_value=down_request_floor;
-		}			
-		else if (down_request_floor == -1)
-		{
-			state = UP;
-			return_value = up_request_floor;
-		}			
-		else
-		{
-			if(up_request_floor-currentfloor > currentfloor-down_request_floor)
+			else if(return_value<=currentfloor)
 			{
-				state = DOWN;
-				return_value = down_request_floor;
-			}				
-			else
-			{
-				state = UP;
-				return_value = up_request_floor;
-			}				
+				state=DOWN;
+			}
 		}
 	}
 	else if(state==UP)
@@ -216,7 +207,25 @@ int Elevator::GetNextFloor()
 				break;
 			}
 		}
-		state = DOWN;
+		if(return_value==-1)
+		{
+			for (int i = numFloors-1; i >= currentfloor; --i)
+			{
+				if (ElevatorDownBarrier[i]->Waiters() != 0)
+				{
+					return_value = i;
+					if(return_value==currentfloor)
+					{
+						state = DOWN;
+					}
+					break;
+				}
+			}
+			if(return_value==-1)
+			{
+				state = DOWN;
+			}
+		}
 	}
 	else
 	{
@@ -233,7 +242,25 @@ int Elevator::GetNextFloor()
 				break;
 			}
 		}
-		state = UP;
+		if(return_value==-1)
+		{
+			for (int i = 0; i <= currentfloor; ++i)
+			{
+				if (ElevatorUpBarrier[i]->Waiters() != 0)
+				{
+					return_value = i;
+					if(return_value==currentfloor)
+					{
+						state = UP;
+					}
+					break;
+				}
+			}
+			if(return_value==-1)
+			{
+				state = UP;
+			}
+		}
 	}
 	ElevatorLock->Release();
 	return return_value;
@@ -241,24 +268,25 @@ int Elevator::GetNextFloor()
 
 void Elevator::ElevatorControl()
 {
-	
+	bool no_requset_flag = false;
 	while (true)
 	{
-		bool no_requset_flag = false;
+		int next_floor = GetNextFloor();
 		if(state==STOP)
 		{
 			ElevatorLock->Acquire();
 			HaveRequest->Wait(ElevatorLock);
-			int next_floor = GetNextFloor();
 			ElevatorLock->Release();
+			printf("now elevator at %d floor\n",currentfloor);
 		}
 		else if(state==UP)
 		{			
-			int next_floor = GetNextFloor();
+			//int next_floor = GetNextFloor();
 			while (currentfloor != next_floor && next_floor !=-1)
 			{			
 				VisitFloor(currentfloor + 1);
 				next_floor = GetNextFloor();
+				printf("now elevator at %d floor\n",currentfloor);
 			}
 			if(next_floor==-1)
 			{
@@ -279,11 +307,12 @@ void Elevator::ElevatorControl()
 		}
 		else if (state == DOWN)
 		{
-			int next_floor = GetNextFloor();
+			//int next_floor = GetNextFloor();
 			while (currentfloor != next_floor && next_floor != -1)
 			{
 				VisitFloor(currentfloor - 1);
 				next_floor = GetNextFloor();
+				printf("now elevator at %d floor\n",currentfloor);
 			}
 			if (next_floor == -1)
 			{
@@ -302,7 +331,9 @@ void Elevator::ElevatorControl()
 				CloseDoors();
 			}
 		}
+	currentThread->Yield();
 	}
+
 }
 
 void rider(int id, int srcFloor, int dstFloor)
