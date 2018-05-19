@@ -465,8 +465,8 @@ ThreadTest7()
 // ThreadTest7 -i 
 //  test elevator
 //----------------------------------------------------------------------
-int num_floors = 10;						//楼层数
-int total_riders = 25;					//生成的总乘客数
+int num_floors = 5;						//楼层数
+int total_riders = 50;					//生成的总乘客数
 int E_random_come_time = 5;			//随机时间间隔
 
 int E_sumtime = 0;
@@ -482,15 +482,15 @@ TestElevatorRider(int whitch)
 	E_should_start_time += rand_time;
 	Alarm::instance->Pause(E_should_start_time);
 	int start_time = stats->totalTicks;	
-	printf("+++%s start at %d ticks from %d floor to %d floor\n\n"
+	printf("\n+++%s start at %d ticks from %d floor to %d floor\n"
 		, currentThread->getName(), start_time, srcfloor,dstfloor);
 	rider(whitch, srcfloor, dstfloor);
-	printf("---%s costs %d\n\n", currentThread->getName(), stats->totalTicks - start_time);
+	printf("------%s costs %d------\n", currentThread->getName(), stats->totalTicks - start_time);
 	E_sumtime += stats->totalTicks - start_time;
 	E_End_num++;
 	if (E_End_num == total_riders)
 	{
-		printf("\n------avg turnaround time %.2f------\n\n", (float)E_sumtime / total_riders);
+		printf("\n-------avg turnaround time %.2f-------\n\n", (float)E_sumtime / total_riders);
 	}
 }
 

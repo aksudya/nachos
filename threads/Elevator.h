@@ -10,10 +10,17 @@ existing interfaces.
 #include "system.h"
 #include "synch.h"
 
+#define BOUNDED_ONE_ELEVATOR
+
 #define OPEN_AND_CLOSE_DOOR     20		//电梯开关门的时间
 #define RIDER_ENTER_OUT           10	//一个乘客进出电梯的时间
 #define ELEVATOR_MOVE_ONE_FLOOR 40		//电梯移动一层楼的时间
-#define ELEVATOR_CAPACITY		6		//电梯容量
+
+#ifdef BOUNDED_ONE_ELEVATOR
+#define ELEVATOR_CAPACITY		5		//电梯容量
+#endif
+
+
 
 enum ElevatorState {UP,DOWN,STOP};
 void rider(int id, int srcFloor, int dstFloor);
@@ -57,14 +64,10 @@ private:
 	Lock *ElevatorLock;
 	
 	Condition *HaveRequest;
-	Condition *ElevatorNotFull;
-	//							
-	//							//请求列表，0代表无请求
-	//int *RequestGoList;			//1代表电梯上有人请求电梯去该楼层
-	//int *RequestUpList;			//1代表该层有人请求电梯上行
-	//int *RequestDownList;		//1代表该层有人请求电梯下行
-	//							//为方便使用，使用该数组下标从1到numFloors的元素
 
+#ifdef BOUNDED_ONE_ELEVATOR
+	Condition *ElevatorNotFull;
+#endif
 
 };
 

@@ -75,8 +75,12 @@ Elevator::Elevator(char* debugName, int numFloors, int myID)
 	currentfloor = 0;
 
 	HaveRequest = new Condition("have a elevator requset");
-	ElevatorNotFull = new Condition("elevator is not full");
 	occupancy=0;
+
+#ifdef BOUNDED_ONE_ELEVATOR
+	ElevatorNotFull = new Condition("elevator is not full");
+#endif
+
 }
 
 Elevator::~Elevator()
@@ -92,13 +96,15 @@ Elevator::~Elevator()
 	delete[] ElevatorOutBarrier;
 	delete[] ElevatorLock;
 	delete HaveRequest;
+#ifdef BOUNDED_ONE_ELEVATOR
 	delete ElevatorNotFull;
+#endif
 }
 
 void Elevator::OpenDoors()
 {
 	Alarm::instance->Pause(OPEN_AND_CLOSE_DOOR);
-	printf("now elevator open door\n");
+	printf("\n*******now elevator open door at %d floor with %d riders*******\n",currentfloor,occupancy);
 	if(ElevatorOutBarrier[currentfloor]->Waiters()!=0)
 	{
 		ElevatorOutBarrier[currentfloor]->Signal();
@@ -123,6 +129,7 @@ void Elevator::OpenDoors()
 void Elevator::CloseDoors()
 {
 	Alarm::instance->Pause(OPEN_AND_CLOSE_DOOR);
+	printf("*******now elevator close door at %d floor with %d riders*******\n\n",currentfloor,occupancy);
 }
 
 void Elevator::VisitFloor(int floor)
@@ -135,6 +142,7 @@ void Elevator::VisitFloor(int floor)
 bool Elevator::Enter()
 {
 	occupancy++;
+#ifdef BOUNDED_ONE_ELEVATOR
 	if(occupancy>ELEVATOR_CAPACITY)
 	{
 		occupancy--;
@@ -151,6 +159,8 @@ bool Elevator::Enter()
 		ElevatorLock->Release();
 		return false;
 	}
+#endif
+
 	Alarm::instance->Pause(RIDER_ENTER_OUT);
 	if(state==UP)
 	{
@@ -168,9 +178,13 @@ void Elevator::Exit()
 	Alarm::instance->Pause(RIDER_ENTER_OUT);
 	ElevatorOutBarrier[currentfloor]->Complete();
 	occupancy--;
+
+#ifdef BOUNDED_ONE_ELEVATOR
 	ElevatorLock->Acquire();
 	ElevatorNotFull->Signal(ElevatorLock);
 	ElevatorLock->Release();
+#endif
+
 }
 
 void Elevator::RequestFloor(int floor)
@@ -182,6 +196,8 @@ int Elevator::GetNextFloor()
 {
 	ElevatorLock->Acquire();
 	int return_value=-1;
+	bool is_out_call=false;
+	bool is_last_request=true;
 	if(state==STOP)
 	{
 		for (int i = 0; i < numFloors; ++i)
@@ -215,10 +231,37 @@ int Elevator::GetNextFloor()
 			}
 			if(ElevatorOutBarrier[i]->Waiters() != 0)
 			{
+				is_out_call=true;
 				return_value = i;
 				break;
 			}
 		}
+
+		if(return_value==currentfloor&&is_out_call)
+		{
+			if(currentfloor==numFloors-1)
+			{
+				is_last_request=true;
+			}
+			for (int i = currentfloor+1; i < numFloors; ++i)
+			{
+				if (ElevatorUpBarrier[i]->Waiters() != 0)
+				{
+					is_last_request=false;
+					break;
+				}
+				if(ElevatorOutBarrier[i]->Waiters() != 0)
+				{
+					is_last_request=false;
+					break;
+				}
+			}
+			if(is_last_request)
+			{
+				state = DOWN;
+			}
+		}
+
 		if(return_value==-1)
 		{
 			for (int i = numFloors-1; i >= currentfloor; --i)
@@ -250,8 +293,34 @@ int Elevator::GetNextFloor()
 			}
 			if (ElevatorOutBarrier[i]->Waiters() != 0)
 			{
+				is_out_call=true;
 				return_value = i;
 				break;
+			}
+		}
+
+		if(return_value==currentfloor&&is_out_call)
+		{
+			if(currentfloor==0)
+			{
+				is_last_request=true;
+			}
+			for (int i = currentfloor-1; i >= 0; --i)
+			{
+				if (ElevatorDownBarrier[i]->Waiters() != 0)
+				{
+					is_last_request=false;
+					break;
+				}
+				if(ElevatorOutBarrier[i]->Waiters() != 0)
+				{
+					is_last_request=false;
+					break;
+				}
+			}
+			if(is_last_request)
+			{
+				state = UP;
 			}
 		}
 		if(return_value==-1)
@@ -284,15 +353,19 @@ void Elevator::ElevatorControl()
 	while (true)
 	{
 		int next_floor = GetNextFloor();
+
+#ifdef BOUNDED_ONE_ELEVATOR
 		ElevatorLock->Acquire();
 		ElevatorNotFull->Broadcast(ElevatorLock);
 		ElevatorLock->Release();
+#endif
+
 		if(state==STOP)
 		{
 			ElevatorLock->Acquire();
 			HaveRequest->Wait(ElevatorLock);
 			ElevatorLock->Release();
-			printf("now elevator at %d floor\n",currentfloor);
+			printf("###now elevator at %d floor with %d riders\n",currentfloor,occupancy);
 		}
 		else if(state==UP)
 		{			
@@ -301,7 +374,7 @@ void Elevator::ElevatorControl()
 			{			
 				VisitFloor(currentfloor + 1);
 				next_floor = GetNextFloor();
-				printf("now elevator at %d floor\n",currentfloor);
+				printf("###now elevator at %d floor with %d riders\n",currentfloor,occupancy);
 			}
 			if(next_floor==-1)
 			{
@@ -327,7 +400,7 @@ void Elevator::ElevatorControl()
 			{
 				VisitFloor(currentfloor - 1);
 				next_floor = GetNextFloor();
-				printf("now elevator at %d floor\n",currentfloor);
+				printf("###now elevator at %d floor with %d riders\n",currentfloor,occupancy);
 			}
 			if (next_floor == -1)
 			{
@@ -346,7 +419,7 @@ void Elevator::ElevatorControl()
 				CloseDoors();
 			}
 		}
-	currentThread->Yield();
+		currentThread->Yield();
 	}
 
 }
@@ -358,26 +431,26 @@ void rider(int id, int srcFloor, int dstFloor)
 	if (srcFloor == dstFloor)
 		return;
 
-	printf("Rider %d travelling from %d to %d\n", id, srcFloor, dstFloor);
+	printf("+++Rider %d travelling from %d to %d\n", id, srcFloor, dstFloor);
 	do {
 		if (srcFloor < dstFloor) {
-			printf("Rider %d CallUp(%d)\n", id, srcFloor);
+			printf("===Rider %d CallUp(%d)\n", id, srcFloor);
 			Building::instance->CallUp(srcFloor);
-			printf("Rider %d AwaitUp(%d)\n", id, srcFloor);
+			printf("===Rider %d AwaitUp(%d)\n\n", id, srcFloor);
 			e = Building::instance->AwaitUp(srcFloor);
 		}
 		else {
-			printf("Rider %d CallDown(%d)\n", id, srcFloor);
+			printf("===Rider %d CallDown(%d)\n", id, srcFloor);
 			Building::instance->CallDown(srcFloor);
-			printf("Rider %d AwaitDown(%d)\n", id, srcFloor);
+			printf("===Rider %d AwaitDown(%d)\n\n", id, srcFloor);
 			e = Building::instance->AwaitDown(srcFloor);
 		}
-		printf("Rider %d Enter()\n", id);
+		printf(">>>Rider %d Enter()\n", id);
 	} while (!e->Enter()); // elevator might be full!
 
-	printf("Rider %d RequestFloor(%d)\n", id, dstFloor);
+	printf(">>>Rider %d RequestFloor(%d)\n", id, dstFloor);
 	e->RequestFloor(dstFloor); // doesn't return until arrival
-	printf("Rider %d Exit()\n", id);
+	printf("---Rider %d Exit()\n", id);
 	e->Exit();
-	printf("Rider %d finished\n", id);
+	printf("---Rider %d finished\n", id);
 }
