@@ -57,6 +57,7 @@ private:
 	Lock *ElevatorLock;
 	
 	Condition *HaveRequest;
+	Condition *ElevatorNotFull;
 	//							
 	//							//请求列表，0代表无请求
 	//int *RequestGoList;			//1代表电梯上有人请求电梯去该楼层

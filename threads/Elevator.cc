@@ -75,6 +75,7 @@ Elevator::Elevator(char* debugName, int numFloors, int myID)
 	currentfloor = 0;
 
 	HaveRequest = new Condition("have a elevator requset");
+	ElevatorNotFull = new Condition("elevator is not full");
 	occupancy=0;
 }
 
@@ -91,6 +92,7 @@ Elevator::~Elevator()
 	delete[] ElevatorOutBarrier;
 	delete[] ElevatorLock;
 	delete HaveRequest;
+	delete ElevatorNotFull;
 }
 
 void Elevator::OpenDoors()
@@ -132,6 +134,23 @@ void Elevator::VisitFloor(int floor)
 
 bool Elevator::Enter()
 {
+	occupancy++;
+	if(occupancy>ELEVATOR_CAPACITY)
+	{
+		occupancy--;
+		if (state == UP)
+		{
+			ElevatorUpBarrier[currentfloor]->Complete();
+		}
+		else if (state == DOWN)
+		{
+			ElevatorDownBarrier[currentfloor]->Complete();
+		}
+		ElevatorLock->Acquire();
+		ElevatorNotFull->Wait(ElevatorLock);
+		ElevatorLock->Release();
+		return false;
+	}
 	Alarm::instance->Pause(RIDER_ENTER_OUT);
 	if(state==UP)
 	{
@@ -140,18 +159,8 @@ bool Elevator::Enter()
 	else if(state==DOWN)
 	{
 		ElevatorDownBarrier[currentfloor]->Complete();
-	}
-	occupancy++;
-	if(occupancy<=ELEVATOR_CAPACITY)
-	{
-		return true;
-	}
-	else
-	{
-		occupancy--;
-		return false;
-	}
-
+	}	
+	return true;
 }
 
 void Elevator::Exit()
@@ -159,6 +168,9 @@ void Elevator::Exit()
 	Alarm::instance->Pause(RIDER_ENTER_OUT);
 	ElevatorOutBarrier[currentfloor]->Complete();
 	occupancy--;
+	ElevatorLock->Acquire();
+	ElevatorNotFull->Signal(ElevatorLock);
+	ElevatorLock->Release();
 }
 
 void Elevator::RequestFloor(int floor)
@@ -272,6 +284,9 @@ void Elevator::ElevatorControl()
 	while (true)
 	{
 		int next_floor = GetNextFloor();
+		ElevatorLock->Acquire();
+		ElevatorNotFull->Broadcast(ElevatorLock);
+		ElevatorLock->Release();
 		if(state==STOP)
 		{
 			ElevatorLock->Acquire();
