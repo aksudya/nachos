@@ -10,8 +10,8 @@ existing interfaces.
 #include "system.h"
 #include "synch.h"
 
-//#define SINGLE_ELEVATOR					
-#define MULTIPLE_ELEVATOR				//单个或多个电梯	
+#define SINGLE_ELEVATOR					
+//#define MULTIPLE_ELEVATOR				//单个或多个电梯	
 
 #define BOUNDED_ELEVATOR
 //#define UNBOUNDED_ELEVATOR				//电梯容量是否有限
@@ -49,7 +49,7 @@ public:
 								// insert your methods here, if needed
 	void ElevatorControl();			//控制电梯运行
 
-	int GetNextFloor();
+	int GetLastRequestFloor();
 private:
 	char *name;
 
