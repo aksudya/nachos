@@ -466,8 +466,8 @@ ThreadTest7()
 //  test elevator
 //----------------------------------------------------------------------
 int num_floors = 5;						//楼层数
-int total_riders = 50;					//生成的总乘客数
-int E_random_come_time = 5;			//随机时间间隔
+int total_riders = 5;					//生成的总乘客数
+int E_random_come_time = 5;		    	//随机时间间隔
 
 int E_sumtime = 0;
 int E_End_num = 0;

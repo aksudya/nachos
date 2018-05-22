@@ -220,8 +220,8 @@ void Elevator::OpenDoors()
 
 void Elevator::CloseDoors()
 {
-	Alarm::instance->Pause(OPEN_AND_CLOSE_DOOR);
 	printf("*******now elevator close door at %d floor with %d riders*******\n\n",currentfloor,occupancy);
+	Alarm::instance->Pause(OPEN_AND_CLOSE_DOOR);
 }
 
 void Elevator::VisitFloor(int floor)
@@ -268,12 +268,13 @@ bool Elevator::Enter()
 void Elevator::Exit()
 {
 	Alarm::instance->Pause(RIDER_ENTER_OUT);
-	ElevatorOutBarrier[currentfloor]->Complete();
 	occupancy--;
+	ElevatorOutBarrier[currentfloor]->Complete();
+
 
 #ifdef BOUNDED_ELEVATOR
 	ElevatorLock->Acquire();
-	ElevatorNotFull->Signal(ElevatorLock);
+	ElevatorNotFull->Broadcast(ElevatorLock);
 	ElevatorLock->Release();
 #endif
 
@@ -292,7 +293,8 @@ int Elevator::GetLastRequestFloor()
 	{
 		for (int i = 0; i < numFloors; ++i)
 		{
-			if (Building::instance->ElevatorUpBarrier[i]->Waiters() != 0 || Building::instance->ElevatorDownBarrier[i]->Waiters() != 0)
+			if (Building::instance->ElevatorUpBarrier[i]->Waiters() != 0
+				|| Building::instance->ElevatorDownBarrier[i]->Waiters() != 0)
 			{
 				return_value = i;
 				break;
@@ -303,12 +305,9 @@ int Elevator::GetLastRequestFloor()
 	{
 		for (int i = numFloors - 1; i >= currentfloor; --i)
 		{
-			if (Building::instance->ElevatorDownBarrier[i]->Waiters() != 0)
-			{
-				return_value = i;
-				break;
-			}
-			if (ElevatorOutBarrier[i]->Waiters() != 0)
+			if (Building::instance->ElevatorDownBarrier[i]->Waiters() != 0
+				||ElevatorOutBarrier[i]->Waiters() != 0
+				||Building::instance->ElevatorUpBarrier[i]->Waiters() != 0)
 			{
 				return_value = i;
 				break;
@@ -319,12 +318,9 @@ int Elevator::GetLastRequestFloor()
 	{
 		for (int i = 0; i <= currentfloor; ++i)
 		{
-			if (Building::instance->ElevatorUpBarrier[i]->Waiters() != 0)
-			{
-				return_value = i;
-				break;
-			}
-			if (ElevatorOutBarrier[i]->Waiters() != 0)
+			if (Building::instance->ElevatorDownBarrier[i]->Waiters() != 0
+				||ElevatorOutBarrier[i]->Waiters() != 0
+				||Building::instance->ElevatorUpBarrier[i]->Waiters() != 0)
 			{
 				return_value = i;
 				break;
@@ -344,8 +340,10 @@ void Elevator::ElevatorControl()
 		if (state==STOP)
 		{
 			ElevatorLock->Acquire();
+			printf("###now elevator stop at %d floor with %d riders\n", currentfloor, occupancy);
 			HaveRequest->Wait(ElevatorLock);
 			ElevatorLock->Release();
+			printf("###now elevator at %d floor with %d riders\n", currentfloor, occupancy);
 			int dest_floor = GetLastRequestFloor();
 			if(dest_floor>currentfloor)
 			{
@@ -366,8 +364,8 @@ void Elevator::ElevatorControl()
 					OpenDoors();
 					CloseDoors();
 				}
-				VisitFloor(currentfloor + 1);	
-				dest_floor = GetLastRequestFloor();				
+				VisitFloor(currentfloor + 1);
+				dest_floor = GetLastRequestFloor();
 				printf("###now elevator at %d floor with %d riders\n", currentfloor, occupancy);
 			}
 			if(dest_floor==-1)
@@ -383,14 +381,26 @@ void Elevator::ElevatorControl()
 			else
 			{
 				no_requset_flag = false;
-				state = DOWN;
+				if(Building::instance->ElevatorUpBarrier[currentfloor]->Waiters()==0)
+				{
+					state = DOWN;
+					OpenDoors();
+					CloseDoors();
+					VisitFloor(currentfloor - 1);
+				}
+				else
+				{
+					OpenDoors();
+					CloseDoors();
+					VisitFloor(currentfloor + 1);
+				}
+				printf("###now elevator at %d floor with %d riders\n", currentfloor, occupancy);
 			}
 		}
 		else
 		{
 			while (currentfloor != dest_floor && dest_floor != -1)
 			{
-				
 				if (Building::instance->ElevatorDownBarrier[currentfloor]->Waiters() != 0
 					|| ElevatorOutBarrier[currentfloor]->Waiters() != 0)
 				{
@@ -414,7 +424,20 @@ void Elevator::ElevatorControl()
 			else
 			{
 				no_requset_flag = false;
-				state = UP;
+				if(Building::instance->ElevatorDownBarrier[currentfloor]->Waiters()==0)
+				{
+					state = UP;
+					OpenDoors();
+					CloseDoors();
+					VisitFloor(currentfloor + 1);
+				}
+				else
+				{
+					OpenDoors();
+					CloseDoors();
+					VisitFloor(currentfloor - 1);
+				}
+				printf("###now elevator at %d floor with %d riders\n", currentfloor, occupancy);
 			}
 		}
 		currentThread->Yield();
