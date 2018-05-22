@@ -10,13 +10,17 @@ existing interfaces.
 #include "system.h"
 #include "synch.h"
 
-#define BOUNDED_ONE_ELEVATOR
+//#define SINGLE_ELEVATOR					
+#define MULTIPLE_ELEVATOR				//单个或多个电梯	
+
+#define BOUNDED_ELEVATOR
+//#define UNBOUNDED_ELEVATOR				//电梯容量是否有限
 
 #define OPEN_AND_CLOSE_DOOR     20		//电梯开关门的时间
 #define RIDER_ENTER_OUT           10	//一个乘客进出电梯的时间
 #define ELEVATOR_MOVE_ONE_FLOOR 40		//电梯移动一层楼的时间
 
-#ifdef BOUNDED_ONE_ELEVATOR
+#ifdef BOUNDED_ELEVATOR
 #define ELEVATOR_CAPACITY		5		//电梯容量
 #endif
 
@@ -57,15 +61,13 @@ private:
 	
 	enum ElevatorState state;
 
-	EventBarrier **ElevatorUpBarrier;		//上行栅栏
-	EventBarrier **ElevatorDownBarrier;		//下行栅栏
 	EventBarrier **ElevatorOutBarrier;		//出电梯栅栏
 
 	Lock *ElevatorLock;
 	
 	Condition *HaveRequest;
 
-#ifdef BOUNDED_ONE_ELEVATOR
+#ifdef BOUNDED_ELEVATOR
 	Condition *ElevatorNotFull;
 #endif
 
@@ -85,12 +87,30 @@ public:
 	Elevator *AwaitUp(int fromFloor); // wait for elevator arrival & going up
 	Elevator *AwaitDown(int fromFloor); // ... down
 
+#ifdef SINGLE_ELEVATOR
 	Elevator *getElevator();
+#endif
+
+#ifdef MULTIPLE_ELEVATOR
+	Elevator *getElevator(int id);
+	int ChooseElevator(int fromfloor);
+#endif
+
 	static void new_instance(char *debugname, int numFloors, int numElevators);
 	static Building *instance;
 private:
 	char *name;
+
+#ifdef SINGLE_ELEVATOR
 	Elevator *elevator;         // the elevators in the building (array)
+#endif
+
+#ifdef MULTIPLE_ELEVATOR
+	Elevator **elevator;
+#endif
+
+	EventBarrier **ElevatorUpBarrier;		//上行栅栏
+	EventBarrier **ElevatorDownBarrier;		//下行栅栏
 								// insert your data structures here, if needed
 	int numFloors;
 	int numElevators;

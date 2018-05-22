@@ -303,7 +303,7 @@ ThreadTest4()
 //----------------------------------------------------------------------
 
 void
-TestEventBarrier_runing(int whitch)
+TestEventBarrier_runing(int which)
 {
 	barrier->Wait();
 	for (int i = 0; i < 1000; ++i)
@@ -323,7 +323,7 @@ TestEventBarrier_runing(int whitch)
 }
 
 void
-TestEventBarrier_signal(int whitch)
+TestEventBarrier_signal(int which)
 {
 	printf("----%s signaled-----\n", currentThread->getName());
 	barrier->Signal();
@@ -413,7 +413,7 @@ int should_start_time = 0;    	//当前进程应当开始的时间
 
 
 void
-TestBridge(int whitch)
+TestBridge(int which)
 {
 	int rand_time = Random() % random_come_time;   //随机时间间隔
 	should_start_time += rand_time;
@@ -474,7 +474,7 @@ int E_End_num = 0;
 int E_should_start_time = 0;    	//当前进程应当开始的时间
 
 void
-TestElevatorRider(int whitch)
+TestElevatorRider(int which)
 {
 	int srcfloor = Random() % num_floors;
 	int dstfloor = Random() % num_floors;
@@ -484,7 +484,7 @@ TestElevatorRider(int whitch)
 	int start_time = stats->totalTicks;	
 	printf("\n+++%s start at %d ticks from %d floor to %d floor\n"
 		, currentThread->getName(), start_time, srcfloor,dstfloor);
-	rider(whitch, srcfloor, dstfloor);
+	rider(which, srcfloor, dstfloor);
 	printf("------%s costs %d------\n", currentThread->getName(), stats->totalTicks - start_time);
 	E_sumtime += stats->totalTicks - start_time;
 	E_End_num++;
@@ -495,7 +495,7 @@ TestElevatorRider(int whitch)
 }
 
 void
-TestElevatorControl(int whitch)
+TestElevatorControl(int which)
 {
 	Building::instance->getElevator()->ElevatorControl();
 }

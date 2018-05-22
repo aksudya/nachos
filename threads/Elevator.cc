@@ -4,6 +4,8 @@
 
 Building *Building::instance;
 
+#ifdef SINGLE_ELEVATOR
+
 Elevator * Building::getElevator()
 {
 	return elevator;
@@ -19,25 +21,40 @@ Building::Building(char* debugname, int numFloors, int numElevators)
 	name = debugname;
 	this->numFloors = numFloors;
 	this->numElevators = numElevators;
-	elevator =new Elevator("elevator", numFloors,1);
+	elevator =new Elevator("elevator", numFloors,0);
 	BuildingLock = new Lock("Building lock");
+	ElevatorUpBarrier = new EventBarrier*[numFloors];
+	ElevatorDownBarrier = new EventBarrier*[numFloors];
+	for (int i = 0; i < numFloors; ++i)
+	{
+		ElevatorUpBarrier[i] = new EventBarrier;
+		ElevatorDownBarrier[i] = new EventBarrier;
+	}
+
 }
 
 Building::~Building()
 {
 	delete elevator;
 	delete BuildingLock;
+	for (int i = 0; i < numFloors; ++i)
+	{
+		delete ElevatorUpBarrier[i];
+		delete ElevatorDownBarrier[i];
+	}
+	delete[] ElevatorUpBarrier;
+	delete[] ElevatorDownBarrier;
 }
 
 Elevator* Building::AwaitDown(int fromFloor)
 {
-	elevator->ElevatorDownBarrier[fromFloor]->Wait();
+	ElevatorDownBarrier[fromFloor]->Wait();
 	return elevator;
 }
 
 Elevator* Building::AwaitUp(int fromFloor)
 {
-	elevator->ElevatorUpBarrier[fromFloor]->Wait();
+	ElevatorUpBarrier[fromFloor]->Wait();
 	return elevator;
 }
 
@@ -55,18 +72,97 @@ void Building::CallUp(int fromFloor)
 	elevator->ElevatorLock->Release();
 }
 
+#endif	//SINGLE_ELEVATOR
+
+#ifdef MULTIPLE_ELEVATOR
+
+Elevator * Building::getElevator(int id)
+{
+	return elevator[id];
+}
+
+void Building::new_instance(char *debugname, int numFloors, int numElevators)
+{
+	instance = new Building(debugname, numFloors, numElevators);
+}
+
+Building::Building(char* debugname, int numFloors, int numElevators)
+{
+	name = debugname;
+	this->numFloors = numFloors;
+	this->numElevators = numElevators;
+	ElevatorUpBarrier = new EventBarrier*[numFloors];
+	ElevatorDownBarrier = new EventBarrier*[numFloors];
+
+	elevator = new Elevator*[numElevators];
+	for (int i = 0; i < numFloors; ++i)
+	{
+		elevator[i] = new Elevator("elevator", numFloors, i);
+		ElevatorUpBarrier[i] = new EventBarrier;
+		ElevatorDownBarrier[i] = new EventBarrier;
+	}
+	BuildingLock = new Lock("Building lock");
+
+}
+
+Building::~Building()
+{
+	
+	for (int i = 0; i < numFloors; ++i)
+	{
+		delete elevator[i];
+		delete ElevatorUpBarrier[i];
+		delete ElevatorDownBarrier[i];
+	}
+	delete[] elevator;
+	delete[] ElevatorUpBarrier;
+	delete[] ElevatorDownBarrier;
+	delete BuildingLock;
+}
+
+int Building::ChooseElevator(int fromfloor)
+{
+	
+}
+
+
+Elevator* Building::AwaitDown(int fromFloor)
+{
+	ElevatorDownBarrier[fromFloor]->Wait();
+	return elevator;
+}
+
+Elevator* Building::AwaitUp(int fromFloor)
+{
+	ElevatorUpBarrier[fromFloor]->Wait();
+	return elevator;
+}
+
+void Building::CallDown(int fromFloor)
+{
+	elevator->ElevatorLock->Acquire();
+	elevator->HaveRequest->Signal(elevator->ElevatorLock);
+	elevator->ElevatorLock->Release();
+}
+
+void Building::CallUp(int fromFloor)
+{
+	elevator->ElevatorLock->Acquire();
+	elevator->HaveRequest->Signal(elevator->ElevatorLock);
+	elevator->ElevatorLock->Release();
+}
+
+#endif // MULTIPLE_ELEVATOR
+
+
 Elevator::Elevator(char* debugName, int numFloors, int myID)
 {
 	name = debugName;
 	this->numFloors = numFloors;
 	ElevatorID = myID;
-	ElevatorUpBarrier = new EventBarrier*[numFloors];
-	ElevatorDownBarrier = new EventBarrier*[numFloors];
 	ElevatorOutBarrier = new EventBarrier*[numFloors];
 	for (int i = 0; i < numFloors; ++i)
 	{
-		ElevatorUpBarrier[i] = new EventBarrier;
-		ElevatorDownBarrier[i] = new EventBarrier;
 		ElevatorOutBarrier[i] = new EventBarrier;
 	}
 	
@@ -77,7 +173,7 @@ Elevator::Elevator(char* debugName, int numFloors, int myID)
 	HaveRequest = new Condition("have a elevator requset");
 	occupancy=0;
 
-#ifdef BOUNDED_ONE_ELEVATOR
+#ifdef BOUNDED_ELEVATOR
 	ElevatorNotFull = new Condition("elevator is not full");
 #endif
 
@@ -87,16 +183,12 @@ Elevator::~Elevator()
 {
 	for (int i = 0; i < numFloors; ++i)
 	{
-		delete ElevatorUpBarrier[i];
-		delete ElevatorDownBarrier[i];
 		delete ElevatorOutBarrier[i];
 	}
-	delete[] ElevatorUpBarrier;
-	delete[] ElevatorDownBarrier;
 	delete[] ElevatorOutBarrier;
 	delete[] ElevatorLock;
 	delete HaveRequest;
-#ifdef BOUNDED_ONE_ELEVATOR
+#ifdef BOUNDED_ELEVATOR
 	delete ElevatorNotFull;
 #endif
 }
@@ -111,16 +203,16 @@ void Elevator::OpenDoors()
 	}
 	if (state == UP)
 	{
-		if (ElevatorUpBarrier[currentfloor]->Waiters() != 0)
+		if (Building::instance->ElevatorUpBarrier[currentfloor]->Waiters() != 0)
 		{
-			ElevatorUpBarrier[currentfloor]->Signal();
+			Building::instance->ElevatorUpBarrier[currentfloor]->Signal();
 		}		
 	}
 	else if (state == DOWN)
 	{
-		if (ElevatorDownBarrier[currentfloor]->Waiters() != 0)
+		if (Building::instance->ElevatorDownBarrier[currentfloor]->Waiters() != 0)
 		{
-			ElevatorDownBarrier[currentfloor]->Signal();
+			Building::instance->ElevatorDownBarrier[currentfloor]->Signal();
 		}
 	}
 
@@ -142,17 +234,17 @@ void Elevator::VisitFloor(int floor)
 bool Elevator::Enter()
 {
 	occupancy++;
-#ifdef BOUNDED_ONE_ELEVATOR
+#ifdef BOUNDED_ELEVATOR
 	if(occupancy>ELEVATOR_CAPACITY)
 	{
 		occupancy--;
 		if (state == UP)
 		{
-			ElevatorUpBarrier[currentfloor]->Complete();
+			Building::instance->ElevatorUpBarrier[currentfloor]->Complete();
 		}
 		else if (state == DOWN)
 		{
-			ElevatorDownBarrier[currentfloor]->Complete();
+			Building::instance->ElevatorDownBarrier[currentfloor]->Complete();
 		}
 		ElevatorLock->Acquire();
 		ElevatorNotFull->Wait(ElevatorLock);
@@ -164,11 +256,11 @@ bool Elevator::Enter()
 	Alarm::instance->Pause(RIDER_ENTER_OUT);
 	if(state==UP)
 	{
-		ElevatorUpBarrier[currentfloor]->Complete();
+		Building::instance->ElevatorUpBarrier[currentfloor]->Complete();
 	}
 	else if(state==DOWN)
 	{
-		ElevatorDownBarrier[currentfloor]->Complete();
+		Building::instance->ElevatorDownBarrier[currentfloor]->Complete();
 	}	
 	return true;
 }
@@ -179,7 +271,7 @@ void Elevator::Exit()
 	ElevatorOutBarrier[currentfloor]->Complete();
 	occupancy--;
 
-#ifdef BOUNDED_ONE_ELEVATOR
+#ifdef BOUNDED_ELEVATOR
 	ElevatorLock->Acquire();
 	ElevatorNotFull->Signal(ElevatorLock);
 	ElevatorLock->Release();
@@ -202,7 +294,7 @@ int Elevator::GetNextFloor()
 	{
 		for (int i = 0; i < numFloors; ++i)
 		{
-			if(ElevatorUpBarrier[i]->Waiters() != 0 || ElevatorDownBarrier[i]->Waiters() != 0)
+			if(Building::instance->ElevatorUpBarrier[i]->Waiters() != 0 || Building::instance->ElevatorDownBarrier[i]->Waiters() != 0)
 			{
 				return_value=i;
 				break;
@@ -224,7 +316,7 @@ int Elevator::GetNextFloor()
 	{
 		for (int i = currentfloor; i < numFloors; ++i)
 		{
-			if (ElevatorUpBarrier[i]->Waiters() != 0)
+			if (Building::instance->ElevatorUpBarrier[i]->Waiters() != 0)
 			{
 				return_value = i;
 				break;
@@ -245,7 +337,7 @@ int Elevator::GetNextFloor()
 			}
 			for (int i = currentfloor+1; i < numFloors; ++i)
 			{
-				if (ElevatorUpBarrier[i]->Waiters() != 0)
+				if (Building::instance->ElevatorUpBarrier[i]->Waiters() != 0)
 				{
 					is_last_request=false;
 					break;
@@ -266,7 +358,7 @@ int Elevator::GetNextFloor()
 		{
 			for (int i = numFloors-1; i >= currentfloor; --i)
 			{
-				if (ElevatorDownBarrier[i]->Waiters() != 0)
+				if (Building::instance->ElevatorDownBarrier[i]->Waiters() != 0)
 				{
 					return_value = i;
 					if(return_value==currentfloor)
@@ -286,7 +378,7 @@ int Elevator::GetNextFloor()
 	{
 		for (int i = currentfloor; i >= 0; --i)
 		{
-			if (ElevatorDownBarrier[i]->Waiters() != 0)
+			if (Building::instance->ElevatorDownBarrier[i]->Waiters() != 0)
 			{
 				return_value = i;
 				break;
@@ -307,7 +399,7 @@ int Elevator::GetNextFloor()
 			}
 			for (int i = currentfloor-1; i >= 0; --i)
 			{
-				if (ElevatorDownBarrier[i]->Waiters() != 0)
+				if (Building::instance->ElevatorDownBarrier[i]->Waiters() != 0)
 				{
 					is_last_request=false;
 					break;
@@ -327,7 +419,7 @@ int Elevator::GetNextFloor()
 		{
 			for (int i = 0; i <= currentfloor; ++i)
 			{
-				if (ElevatorUpBarrier[i]->Waiters() != 0)
+				if (Building::instance->ElevatorUpBarrier[i]->Waiters() != 0)
 				{
 					return_value = i;
 					if(return_value==currentfloor)
@@ -354,7 +446,7 @@ void Elevator::ElevatorControl()
 	{
 		int next_floor = GetNextFloor();
 
-#ifdef BOUNDED_ONE_ELEVATOR
+#ifdef BOUNDED_ELEVATOR
 		ElevatorLock->Acquire();
 		ElevatorNotFull->Broadcast(ElevatorLock);
 		ElevatorLock->Release();
