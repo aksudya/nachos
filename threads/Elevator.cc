@@ -129,27 +129,63 @@ int Building::ChooseElevator(int fromfloor)
 Elevator* Building::AwaitDown(int fromFloor)
 {
 	ElevatorDownBarrier[fromFloor]->Wait();
-	return elevator;
+	BuildingLock->Acquire();
+	Elevator *re;
+	for (int i = 0; i < numElevators; ++i)
+	{
+		if (elevator[i]->currentfloor==fromFloor)
+		{
+			re = elevator[i];
+			break;
+		}
+	}
+	BuildingLock->Release();
+	return re;
 }
 
 Elevator* Building::AwaitUp(int fromFloor)
 {
 	ElevatorUpBarrier[fromFloor]->Wait();
-	return elevator;
+	BuildingLock->Acquire();
+	Elevator *re;
+	for (int i = 0; i < numElevators; ++i)
+	{
+		if (elevator[i]->currentfloor == fromFloor)
+		{
+			re = elevator[i];
+			break;
+		}
+	}
+	BuildingLock->Release();
+	return re;
 }
 
 void Building::CallDown(int fromFloor)
 {
-	elevator->ElevatorLock->Acquire();
-	elevator->HaveRequest->Signal(elevator->ElevatorLock);
-	elevator->ElevatorLock->Release();
+	BuildingLock->Acquire();
+	for (int i = 0; i < numFloors; ++i)
+	{
+		if(elevator[i]->state==STOP)
+		{
+			elevator[i]->HaveRequest->Signal(BuildingLock);
+			break;
+		}
+	}	
+	BuildingLock->Release();
 }
 
 void Building::CallUp(int fromFloor)
 {
-	elevator->ElevatorLock->Acquire();
-	elevator->HaveRequest->Signal(elevator->ElevatorLock);
-	elevator->ElevatorLock->Release();
+	BuildingLock->Acquire();
+	for (int i = 0; i < numFloors; ++i)
+	{
+		if (elevator[i]->state == STOP)
+		{
+			elevator[i]->HaveRequest->Signal(BuildingLock);
+			break;
+		}
+	}
+	BuildingLock->Release();
 }
 
 #endif // MULTIPLE_ELEVATOR
@@ -294,6 +330,7 @@ int Elevator::GetLastRequestFloor()
 		for (int i = 0; i < numFloors; ++i)
 		{
 			if (Building::instance->ElevatorUpBarrier[i]->Waiters() != 0
+				|| ElevatorOutBarrier[i]->Waiters() != 0
 				|| Building::instance->ElevatorDownBarrier[i]->Waiters() != 0)
 			{
 				return_value = i;
@@ -341,7 +378,10 @@ void Elevator::ElevatorControl()
 		{
 			ElevatorLock->Acquire();
 			printf("###now elevator stop at %d floor with %d riders\n", currentfloor, occupancy);
-			HaveRequest->Wait(ElevatorLock);
+			if(dest_floor==-1)
+			{
+				HaveRequest->Wait(ElevatorLock);
+			}			
 			ElevatorLock->Release();
 			printf("###now elevator at %d floor with %d riders\n", currentfloor, occupancy);
 			int dest_floor = GetLastRequestFloor();
