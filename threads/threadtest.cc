@@ -465,9 +465,10 @@ ThreadTest7()
 // ThreadTest7 -i 
 //  test elevator
 //----------------------------------------------------------------------
-int num_floors = 5;						//楼层数
-int total_riders = 5;					//生成的总乘客数
-int E_random_come_time = 5;		    	//随机时间间隔
+int num_floors = 3;						//楼层数
+int total_riders = 100;					//生成的总乘客数
+int E_random_come_time = 2;		    	//随机时间间隔
+int elevator_num=5;						//电梯个数
 
 int E_sumtime = 0;
 int E_End_num = 0;
@@ -497,15 +498,27 @@ TestElevatorRider(int which)
 void
 TestElevatorControl(int which)
 {
-	Building::instance->getElevator()->ElevatorControl();
+
+	Building::instance->getElevator(which)->ElevatorControl();
 }
 
 void
 ThreadTest8()
 {
-	Building::new_instance("building", num_floors,1);
-	Thread *t = new Thread("elevator Control");
-	t->Fork(TestElevatorControl, 0);
+	Building::new_instance("building", num_floors,elevator_num);
+	for(int i=0;i<elevator_num;i++)
+	{
+		char No[4] = "1";
+		sprintf(No, "%d", i);
+		char *name = new char[25];
+		name[0] = '\0';
+		strcat(name, "elevator ");
+		strcat(name, No);
+		Thread *t = new Thread(name);
+		t->Fork(TestElevatorControl, i);
+	}
+
+
 	for (int i = 0; i < total_riders; ++i)
 	{
 		char No[4] = "1";
