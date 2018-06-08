@@ -465,8 +465,8 @@ ThreadTest7()
 // ThreadTest7 -i 
 //  test elevator
 //----------------------------------------------------------------------
-int num_floors = 3;						//楼层数
-int total_riders = 100;					//生成的总乘客数
+int num_floors = 10;						//楼层数
+int total_riders = 500;					//生成的总乘客数
 int E_random_come_time = 2;		    	//随机时间间隔
 int elevator_num=5;						//电梯个数
 
@@ -489,6 +489,7 @@ TestElevatorRider(int which)
 	printf("------%s costs %d------\n", currentThread->getName(), stats->totalTicks - start_time);
 	E_sumtime += stats->totalTicks - start_time;
 	E_End_num++;
+	//printf("------%d has finished------\n", E_End_num);
 	if (E_End_num == total_riders)
 	{
 		printf("\n-------avg turnaround time %.2f-------\n\n", (float)E_sumtime / total_riders);
@@ -498,14 +499,21 @@ TestElevatorRider(int which)
 void
 TestElevatorControl(int which)
 {
-
+#ifdef MULTIPLE_ELEVATOR
 	Building::instance->getElevator(which)->ElevatorControl();
+#endif
+
+#ifdef SINGLE_ELEVATOR
+	Building::instance->getElevator()->ElevatorControl();
+#endif
 }
 
 void
 ThreadTest8()
 {
 	Building::new_instance("building", num_floors,elevator_num);
+
+#ifdef MULTIPLE_ELEVATOR
 	for(int i=0;i<elevator_num;i++)
 	{
 		char No[4] = "1";
@@ -517,8 +525,13 @@ ThreadTest8()
 		Thread *t = new Thread(name);
 		t->Fork(TestElevatorControl, i);
 	}
+#endif
 
+#ifdef SINGLE_ELEVATOR
 
+	Thread *t = new Thread("elevator");
+	t->Fork(TestElevatorControl, 0);
+#endif
 	for (int i = 0; i < total_riders; ++i)
 	{
 		char No[4] = "1";

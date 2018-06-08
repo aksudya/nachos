@@ -99,32 +99,39 @@ Building::Building(char* debugname, int numFloors, int numElevators)
 	for (int i = 0; i < numElevators; ++i)
 	{
 		elevator[i] = new Elevator("elevator", numFloors, i);
+
+	}
+	for (int i = 0; i < numFloors; ++i)
+	{
 		ElevatorUpBarrier[i] = new EventBarrier;
 		ElevatorDownBarrier[i] = new EventBarrier;
 	}
+
 	BuildingLock = new Lock("Building lock");
 
 }
 
 Building::~Building()
 {
+	for (int i = 0; i < numElevators; ++i)
+	{
+		delete elevator[i];
+
+	}
 	
 	for (int i = 0; i < numFloors; ++i)
 	{
-		delete elevator[i];
 		delete ElevatorUpBarrier[i];
 		delete ElevatorDownBarrier[i];
 	}
+
+
 	delete[] elevator;
 	delete[] ElevatorUpBarrier;
 	delete[] ElevatorDownBarrier;
 	delete BuildingLock;
 }
 
-int Building::ChooseElevator(int fromfloor)
-{
-	
-}
 
 
 Elevator* Building::AwaitDown(int fromFloor)
@@ -134,7 +141,8 @@ Elevator* Building::AwaitDown(int fromFloor)
 	Elevator *re;
 	for (int i = 0; i < numElevators; ++i)
 	{
-		if (elevator[i]->currentfloor==fromFloor)
+		if (elevator[i]->currentfloor==fromFloor && (elevator[i]->state==DOWN||elevator[i]->state==STOP)
+				&&elevator[i]->canEnter==true)
 		{
 			re = elevator[i];
 			break;
@@ -151,7 +159,8 @@ Elevator* Building::AwaitUp(int fromFloor)
 	Elevator *re;
 	for (int i = 0; i < numElevators; ++i)
 	{
-		if (elevator[i]->currentfloor == fromFloor)
+		if (elevator[i]->currentfloor == fromFloor && (elevator[i]->state==UP||elevator[i]->state==STOP)
+				&&elevator[i]->canEnter==true)
 		{
 			re = elevator[i];
 			break;
@@ -209,6 +218,9 @@ Elevator::Elevator(char* debugName, int numFloors, int myID)
 
 	HaveRequest = new Condition("have a elevator requset");
 	occupancy=0;
+#ifdef MULTIPLE_ELEVATOR
+	canEnter=false;
+#endif
 
 #ifdef BOUNDED_ELEVATOR
 	ElevatorNotFull = new Condition("elevator is not full");
@@ -238,6 +250,11 @@ void Elevator::OpenDoors()
 	{
 		ElevatorOutBarrier[currentfloor]->Signal();
 	}
+
+#ifdef MULTIPLE_ELEVATOR
+	canEnter=true;
+#endif
+
 	if (state == UP)
 	{
 		if (Building::instance->ElevatorUpBarrier[currentfloor]->Waiters() != 0)
@@ -257,6 +274,11 @@ void Elevator::OpenDoors()
 
 void Elevator::CloseDoors()
 {
+
+#ifdef MULTIPLE_ELEVATOR
+	canEnter=false;
+#endif
+
 	printf("*******now elevator %d close door at %d floor with %d riders*******\n\n",ElevatorID,currentfloor,occupancy);
 	Alarm::instance->Pause(OPEN_AND_CLOSE_DOOR);
 }
@@ -507,7 +529,7 @@ void rider(int id, int srcFloor, int dstFloor)
 			printf("===Rider %d AwaitDown(%d)\n\n", id, srcFloor);
 			e = Building::instance->AwaitDown(srcFloor);
 		}
-		printf(">>>Rider %d Enter()\n", id);
+		printf(">>>Rider %d Enter() elevator %d\n", id,e->getId());
 	} while (!e->Enter()); // elevator might be full!
 
 	printf(">>>Rider %d RequestFloor(%d)\n", id, dstFloor);

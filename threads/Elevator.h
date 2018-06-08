@@ -10,8 +10,8 @@ existing interfaces.
 #include "system.h"
 #include "synch.h"
 
-//#define SINGLE_ELEVATOR					
-#define MULTIPLE_ELEVATOR				//单个或多个电梯	
+//#define SINGLE_ELEVATOR
+#define MULTIPLE_ELEVATOR				//单个或多个电梯
 
 #define BOUNDED_ELEVATOR
 //#define UNBOUNDED_ELEVATOR				//电梯容量是否有限
@@ -35,6 +35,7 @@ public:
 	Elevator(char *debugName, int numFloors, int myID);
 	~Elevator();
 	char *getName() { return name; }
+	int getId(){return ElevatorID;}
 
 	// elevator control interface: called by Elevator thread
 	void OpenDoors();                //   signal exiters and enterers to action
@@ -66,9 +67,13 @@ private:
 	Lock *ElevatorLock;
 	
 	Condition *HaveRequest;
+#ifdef MULTIPLE_ELEVATOR
+	bool canEnter;
+#endif
 
 #ifdef BOUNDED_ELEVATOR
 	Condition *ElevatorNotFull;
+
 #endif
 
 };
@@ -93,7 +98,6 @@ public:
 
 #ifdef MULTIPLE_ELEVATOR
 	Elevator *getElevator(int id);
-	int ChooseElevator(int fromfloor);
 #endif
 
 	static void new_instance(char *debugname, int numFloors, int numElevators);
