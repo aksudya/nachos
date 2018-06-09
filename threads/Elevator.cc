@@ -1,6 +1,7 @@
 #pragma once
 #include "Elevator.h"
 #include "Alarm.h"
+#include "../machine/sysdep.h"
 
 Building *Building::instance;
 
@@ -142,7 +143,7 @@ Elevator* Building::AwaitDown(int fromFloor)
 	for (int i = 0; i < numElevators; ++i)
 	{
 		if (elevator[i]->currentfloor==fromFloor && (elevator[i]->state==DOWN||elevator[i]->state==STOP)
-				&&elevator[i]->canEnter==true)
+				&&elevator[i]->canEnter)
 		{
 			re = elevator[i];
 			break;
@@ -160,7 +161,7 @@ Elevator* Building::AwaitUp(int fromFloor)
 	for (int i = 0; i < numElevators; ++i)
 	{
 		if (elevator[i]->currentfloor == fromFloor && (elevator[i]->state==UP||elevator[i]->state==STOP)
-				&&elevator[i]->canEnter==true)
+				&&elevator[i]->canEnter)
 		{
 			re = elevator[i];
 			break;
@@ -173,13 +174,19 @@ Elevator* Building::AwaitUp(int fromFloor)
 void Building::CallDown(int fromFloor)
 {
 	BuildingLock->Acquire();
+	int MinInterval = numFloors + 1;
+	int eleNum=-1;
 	for (int i = 0; i < numElevators; ++i)
 	{
-		if(elevator[i]->state==STOP)
+		if(elevator[i]->state==STOP && abs(elevator[i]->currentfloor-fromFloor)<MinInterval )
 		{
-			elevator[i]->HaveRequest->Signal(BuildingLock);
-			break;
+			MinInterval = abs(elevator[i]->currentfloor - fromFloor);
+			eleNum = i;
 		}
+	}
+	if(eleNum!=-1)
+	{
+		elevator[eleNum]->HaveRequest->Signal(BuildingLock);
 	}	
 	BuildingLock->Release();
 }
@@ -187,13 +194,19 @@ void Building::CallDown(int fromFloor)
 void Building::CallUp(int fromFloor)
 {
 	BuildingLock->Acquire();
+	int MinInterval = numFloors + 1;
+	int eleNum = -1;
 	for (int i = 0; i < numElevators; ++i)
 	{
-		if (elevator[i]->state == STOP)
+		if (elevator[i]->state == STOP && abs(elevator[i]->currentfloor - fromFloor)<MinInterval)
 		{
-			elevator[i]->HaveRequest->Signal(BuildingLock);
-			break;
+			MinInterval = abs(elevator[i]->currentfloor - fromFloor);
+			eleNum = i;
 		}
+	}
+	if (eleNum != -1)
+	{
+		elevator[eleNum]->HaveRequest->Signal(BuildingLock);
 	}
 	BuildingLock->Release();
 }
@@ -407,7 +420,7 @@ void Elevator::ElevatorControl()
 			}			
 			ElevatorLock->Release();
 			printf("###now elevator %d at %d floor with %d riders\n",ElevatorID, currentfloor, occupancy);
-			int dest_floor = GetLastRequestFloor();
+			dest_floor = GetLastRequestFloor();
 			if(dest_floor>currentfloor)
 			{
 				state = UP;

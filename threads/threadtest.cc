@@ -476,9 +476,14 @@ int E_should_start_time = 0;    	//当前进程应当开始的时间
 
 void
 TestElevatorRider(int which)
-{
-	int srcfloor = Random() % num_floors;
-	int dstfloor = Random() % num_floors;
+{	
+	int srcfloor;
+	int dstfloor;
+	do
+	{
+		srcfloor = Random() % num_floors;
+		dstfloor = Random() % num_floors;
+	} while (srcfloor != dstfloor);
 	int rand_time = Random() % E_random_come_time;   //随机时间间隔
 	E_should_start_time += rand_time;
 	Alarm::instance->Pause(E_should_start_time);
