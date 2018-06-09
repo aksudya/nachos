@@ -483,7 +483,7 @@ TestElevatorRider(int which)
 	{
 		srcfloor = Random() % num_floors;
 		dstfloor = Random() % num_floors;
-	} while (srcfloor != dstfloor);
+	} while (srcfloor == dstfloor);
 	int rand_time = Random() % E_random_come_time;   //随机时间间隔
 	E_should_start_time += rand_time;
 	Alarm::instance->Pause(E_should_start_time);
