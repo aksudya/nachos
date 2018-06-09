@@ -300,6 +300,13 @@ void Elevator::VisitFloor(int floor)
 {
 	Alarm::instance->Pause(ELEVATOR_MOVE_ONE_FLOOR);
 	currentfloor = floor;
+
+#ifdef BOUNDED_ELEVATOR
+	ElevatorLock->Acquire();
+	ElevatorNotFull->Broadcast(ElevatorLock);
+	ElevatorLock->Release();
+#endif
+
 }
 
 
@@ -344,11 +351,7 @@ void Elevator::Exit()
 	ElevatorOutBarrier[currentfloor]->Complete();
 
 
-#ifdef BOUNDED_ELEVATOR
-	ElevatorLock->Acquire();
-	ElevatorNotFull->Broadcast(ElevatorLock);
-	ElevatorLock->Release();
-#endif
+
 
 }
 
