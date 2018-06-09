@@ -350,7 +350,11 @@ void Elevator::Exit()
 	occupancy--;
 	ElevatorOutBarrier[currentfloor]->Complete();
 
-
+#ifdef BOUNDED_ELEVATOR
+	ElevatorLock->Acquire();
+	ElevatorNotFull->Broadcast(ElevatorLock);
+	ElevatorLock->Release();
+#endif
 
 
 }
