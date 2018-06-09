@@ -468,7 +468,7 @@ ThreadTest7()
 int num_floors = 10;						//楼层数
 int total_riders = 500;					//生成的总乘客数
 int E_random_come_time = 2;		    	//随机时间间隔
-int elevator_num=5;						//电梯个数
+int elevator_num=10;						//电梯个数
 
 int E_sumtime = 0;
 int E_End_num = 0;

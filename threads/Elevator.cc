@@ -298,14 +298,17 @@ void Elevator::CloseDoors()
 
 void Elevator::VisitFloor(int floor)
 {
-	Alarm::instance->Pause(ELEVATOR_MOVE_ONE_FLOOR);
-	currentfloor = floor;
 
 #ifdef BOUNDED_ELEVATOR
 	ElevatorLock->Acquire();
 	ElevatorNotFull->Broadcast(ElevatorLock);
 	ElevatorLock->Release();
 #endif
+
+	Alarm::instance->Pause(ELEVATOR_MOVE_ONE_FLOOR);
+	currentfloor = floor;
+
+
 
 }
 
@@ -350,11 +353,11 @@ void Elevator::Exit()
 	occupancy--;
 	ElevatorOutBarrier[currentfloor]->Complete();
 
-#ifdef BOUNDED_ELEVATOR
-	ElevatorLock->Acquire();
-	ElevatorNotFull->Broadcast(ElevatorLock);
-	ElevatorLock->Release();
-#endif
+//#ifdef BOUNDED_ELEVATOR
+	//ElevatorLock->Acquire();
+	//ElevatorNotFull->Broadcast(ElevatorLock);
+	//ElevatorLock->Release();
+//#endif
 
 
 }
