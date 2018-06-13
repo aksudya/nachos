@@ -8,7 +8,7 @@
 
 [lab2分支](https://github.com/aksudya/nachos/tree/lab2)为实验二代码
 
-[lab3分支](https://github.com/aksudya/nachos/tree/lab3)为实验三代码
+[lab3_beta分支](https://github.com/aksudya/nachos/tree/lab3_beta)为完整版实验三代码
 
 此代码为code文件夹中的内容
 
