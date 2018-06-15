@@ -416,7 +416,7 @@ int Elevator::GetLastRequestFloor()
 
 void Elevator::ElevatorControl()
 {
-	bool no_requset_flag = false;
+	bool no_requset_flag=false;
 	while (true)
 	{
 		int dest_floor = GetLastRequestFloor();
@@ -432,18 +432,15 @@ void Elevator::ElevatorControl()
 			printf("###now elevator %d at %d floor with %d riders\n",ElevatorID, currentfloor, occupancy);
 			dest_floor = GetLastRequestFloor();
 			if(dest_floor>currentfloor)
-			{
 				state = UP;
-			}
 			else
-			{
 				state = DOWN;
-			}
 		}
 		else if(state==UP)
 		{
-			while (currentfloor != dest_floor && dest_floor != -1)
+			while (currentfloor != dest_floor && dest_floor!=-1)
 			{	
+				no_requset_flag = false;
 				if(Building::instance->ElevatorUpBarrier[currentfloor]->Waiters()!=0
 					||ElevatorOutBarrier[currentfloor]->Waiters()!=0)
 				{
@@ -461,32 +458,35 @@ void Elevator::ElevatorControl()
 					state = STOP;
 					continue;
 				}
+				state=DOWN;
 				no_requset_flag = true;
 				continue;
 			}
+			if(Building::instance->ElevatorUpBarrier[currentfloor]->Waiters()==0)
+			{
+
+				state = DOWN;
+				OpenDoors();
+				CloseDoors();
+				dest_floor = GetLastRequestFloor();
+				if(dest_floor==-1)
+					state = STOP;
+				else
+					VisitFloor(currentfloor - 1);
+			}
 			else
 			{
-				no_requset_flag = false;
-				if(Building::instance->ElevatorUpBarrier[currentfloor]->Waiters()==0)
-				{
-					state = DOWN;
-					OpenDoors();
-					CloseDoors();
-					VisitFloor(currentfloor - 1);
-				}
-				else
-				{
-					OpenDoors();
-					CloseDoors();
-					VisitFloor(currentfloor + 1);
-				}
-				printf("###now elevator %d at %d floor with %d riders\n",ElevatorID, currentfloor, occupancy);
+				OpenDoors();
+				CloseDoors();
+				VisitFloor(currentfloor + 1);
 			}
+			printf("###now elevator %d at %d floor with %d riders\n",ElevatorID, currentfloor, occupancy);
 		}
 		else
 		{
-			while (currentfloor != dest_floor && dest_floor != -1)
+			while (currentfloor != dest_floor && dest_floor!=-1)
 			{
+				no_requset_flag = false;
 				if (Building::instance->ElevatorDownBarrier[currentfloor]->Waiters() != 0
 					|| ElevatorOutBarrier[currentfloor]->Waiters() != 0)
 				{
@@ -497,34 +497,36 @@ void Elevator::ElevatorControl()
 				dest_floor = GetLastRequestFloor();
 				printf("###now elevator %d at %d floor with %d riders\n",ElevatorID, currentfloor, occupancy);
 			}
-			if (dest_floor == -1)
+			if(dest_floor==-1)
 			{
 				if (no_requset_flag)
 				{
 					state = STOP;
 					continue;
 				}
+				state=UP;
 				no_requset_flag = true;
 				continue;
 			}
+			if(Building::instance->ElevatorDownBarrier[currentfloor]->Waiters()==0)
+			{
+				state = UP;
+				OpenDoors();
+				CloseDoors();
+				dest_floor = GetLastRequestFloor();
+				if(dest_floor==-1)
+					state = STOP;
+				else
+					VisitFloor(currentfloor + 1);
+			}
 			else
 			{
-				no_requset_flag = false;
-				if(Building::instance->ElevatorDownBarrier[currentfloor]->Waiters()==0)
-				{
-					state = UP;
-					OpenDoors();
-					CloseDoors();
-					VisitFloor(currentfloor + 1);
-				}
-				else
-				{
-					OpenDoors();
-					CloseDoors();
-					VisitFloor(currentfloor - 1);
-				}
-				printf("###now elevator %d at %d floor with %d riders\n",ElevatorID, currentfloor, occupancy);
+				OpenDoors();
+				CloseDoors();
+				VisitFloor(currentfloor - 1);
 			}
+			printf("###now elevator %d at %d floor with %d riders\n",ElevatorID, currentfloor, occupancy);
+
 		}
 		currentThread->Yield();
 	}

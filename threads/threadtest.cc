@@ -465,12 +465,12 @@ ThreadTest7()
 // ThreadTest7 -i 
 //  test elevator
 //----------------------------------------------------------------------
-int num_floors = 10;						//楼层数
+int num_floors = 5;						//楼层数
 int total_riders = 500;					//生成的总乘客数
 int E_random_come_time = 2;		    	//随机时间间隔
-int elevator_num=10;						//电梯个数
+int elevator_num=2;						//电梯个数
 
-int E_sumtime = 0;
+long long int E_sumtime = 0;
 int E_End_num = 0;
 int E_should_start_time = 0;    	//当前进程应当开始的时间
 
