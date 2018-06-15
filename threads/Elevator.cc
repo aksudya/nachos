@@ -142,8 +142,9 @@ Elevator* Building::AwaitDown(int fromFloor)
 	Elevator *re;
 	for (int i = 0; i < numElevators; ++i)
 	{
-		if (elevator[i]->currentfloor==fromFloor && (elevator[i]->state==DOWN||elevator[i]->state==STOP)
-				&&elevator[i]->canEnter)
+		if (elevator[i]->currentfloor==fromFloor 
+			&& (elevator[i]->state==DOWN||elevator[i]->state==STOP)
+			&&elevator[i]->canEnter)
 		{
 			re = elevator[i];
 			break;
@@ -160,8 +161,9 @@ Elevator* Building::AwaitUp(int fromFloor)
 	Elevator *re;
 	for (int i = 0; i < numElevators; ++i)
 	{
-		if (elevator[i]->currentfloor == fromFloor && (elevator[i]->state==UP||elevator[i]->state==STOP)
-				&&elevator[i]->canEnter)
+		if (elevator[i]->currentfloor == fromFloor 
+			&& (elevator[i]->state==UP||elevator[i]->state==STOP)
+			&&elevator[i]->canEnter)
 		{
 			re = elevator[i];
 			break;
@@ -178,7 +180,8 @@ void Building::CallDown(int fromFloor)
 	int eleNum=-1;
 	for (int i = 0; i < numElevators; ++i)
 	{
-		if(elevator[i]->state==STOP && abs(elevator[i]->currentfloor-fromFloor)<MinInterval )
+		if(elevator[i]->state==STOP 
+			&& abs(elevator[i]->currentfloor-fromFloor)<MinInterval )
 		{
 			MinInterval = abs(elevator[i]->currentfloor - fromFloor);
 			eleNum = i;
@@ -198,7 +201,8 @@ void Building::CallUp(int fromFloor)
 	int eleNum = -1;
 	for (int i = 0; i < numElevators; ++i)
 	{
-		if (elevator[i]->state == STOP && abs(elevator[i]->currentfloor - fromFloor)<MinInterval)
+		if (elevator[i]->state == STOP 
+			&& abs(elevator[i]->currentfloor - fromFloor)<MinInterval)
 		{
 			MinInterval = abs(elevator[i]->currentfloor - fromFloor);
 			eleNum = i;
@@ -307,9 +311,6 @@ void Elevator::VisitFloor(int floor)
 
 	Alarm::instance->Pause(ELEVATOR_MOVE_ONE_FLOOR);
 	currentfloor = floor;
-
-
-
 }
 
 
@@ -334,7 +335,6 @@ bool Elevator::Enter()
 		return false;
 	}
 #endif
-
 	Alarm::instance->Pause(RIDER_ENTER_OUT);
 	if(state==UP)
 	{
@@ -352,14 +352,6 @@ void Elevator::Exit()
 	Alarm::instance->Pause(RIDER_ENTER_OUT);
 	occupancy--;
 	ElevatorOutBarrier[currentfloor]->Complete();
-
-//#ifdef BOUNDED_ELEVATOR
-	//ElevatorLock->Acquire();
-	//ElevatorNotFull->Broadcast(ElevatorLock);
-	//ElevatorLock->Release();
-//#endif
-
-
 }
 
 void Elevator::RequestFloor(int floor)
@@ -423,13 +415,15 @@ void Elevator::ElevatorControl()
 		if (state==STOP)
 		{
 			ElevatorLock->Acquire();
-			printf("###now elevator %d stop at %d floor with %d riders\n",ElevatorID, currentfloor, occupancy);
+			printf("###now elevator %d stop at %d floor with %d riders\n"
+				,ElevatorID, currentfloor, occupancy);
 			if(dest_floor==-1)
 			{
 				HaveRequest->Wait(ElevatorLock);
 			}			
 			ElevatorLock->Release();
-			printf("###now elevator %d at %d floor with %d riders\n",ElevatorID, currentfloor, occupancy);
+			printf("###now elevator %d at %d floor with %d riders\n"
+				,ElevatorID, currentfloor, occupancy);
 			dest_floor = GetLastRequestFloor();
 			if(dest_floor>currentfloor)
 				state = UP;
@@ -449,11 +443,12 @@ void Elevator::ElevatorControl()
 				}
 				VisitFloor(currentfloor + 1);
 				dest_floor = GetLastRequestFloor();
-				printf("###now elevator %d at %d floor with %d riders\n",ElevatorID, currentfloor, occupancy);
+				printf("###now elevator %d at %d floor with %d riders\n"
+					,ElevatorID, currentfloor, occupancy);
 			}
-			if(dest_floor==-1)
+			if(dest_floor==-1)			//多个电梯时因为请求若被其他电梯满足则会被取消，故需在此处判断
 			{
-				if (no_requset_flag)
+				if (no_requset_flag)	//若在上一个循环中判断的另外一个方向也无请求
 				{
 					state = STOP;
 					continue;
@@ -464,23 +459,23 @@ void Elevator::ElevatorControl()
 			}
 			if(Building::instance->ElevatorUpBarrier[currentfloor]->Waiters()==0)
 			{
-
-				state = DOWN;
+				state = DOWN;						//掉头
 				OpenDoors();
 				CloseDoors();
 				dest_floor = GetLastRequestFloor();
-				if(dest_floor==-1)
+				if(dest_floor==-1)					//若DOWN方向上也无新的请求则使电梯停下
 					state = STOP;
-				else
-					VisitFloor(currentfloor - 1);
+				else								//否则向DOWN方向运行
+					VisitFloor(currentfloor - 1);	
 			}
-			else
+			else									//当所有请求中最上面的请求还是向上时
 			{
 				OpenDoors();
 				CloseDoors();
 				VisitFloor(currentfloor + 1);
 			}
-			printf("###now elevator %d at %d floor with %d riders\n",ElevatorID, currentfloor, occupancy);
+			printf("###now elevator %d at %d floor with %d riders\n"
+				,ElevatorID, currentfloor, occupancy);
 		}
 		else
 		{
@@ -530,16 +525,13 @@ void Elevator::ElevatorControl()
 		}
 		currentThread->Yield();
 	}
-
 }
 
 void rider(int id, int srcFloor, int dstFloor)
 {
 	Elevator *e;
-
 	if (srcFloor == dstFloor)
 		return;
-
 	printf("+++Rider %d travelling from %d to %d\n", id, srcFloor, dstFloor);
 	do {
 		if (srcFloor < dstFloor) {

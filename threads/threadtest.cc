@@ -466,13 +466,15 @@ ThreadTest7()
 //  test elevator
 //----------------------------------------------------------------------
 int num_floors = 5;						//楼层数
-int total_riders = 500;					//生成的总乘客数
+int total_riders = 20;					//生成的总乘客数
 int E_random_come_time = 2;		    	//随机时间间隔
 int elevator_num=2;						//电梯个数
 
 long long int E_sumtime = 0;
 int E_End_num = 0;
 int E_should_start_time = 0;    	//当前进程应当开始的时间
+int max_turnaroundtime = 0;
+int min_turnaroundtime = 2147483645;
 
 void
 TestElevatorRider(int which)
@@ -492,12 +494,19 @@ TestElevatorRider(int which)
 		, currentThread->getName(), start_time, srcfloor,dstfloor);
 	rider(which, srcfloor, dstfloor);
 	printf("------%s costs %d------\n", currentThread->getName(), stats->totalTicks - start_time);
-	E_sumtime += stats->totalTicks - start_time;
+	int turnaroundtime = stats->totalTicks - start_time;
+	if(turnaroundtime>max_turnaroundtime)
+		max_turnaroundtime = turnaroundtime;
+	if(turnaroundtime<min_turnaroundtime)
+		min_turnaroundtime = turnaroundtime;
+	E_sumtime += turnaroundtime;
 	E_End_num++;
 	//printf("------%d has finished------\n", E_End_num);
 	if (E_End_num == total_riders)
 	{
-		printf("\n-------avg turnaround time %.2f-------\n\n", (float)E_sumtime / total_riders);
+		printf("\n-------avg turnaround time %.2f-------\n", (float)E_sumtime / total_riders);
+		printf("-------max turnaround time %d-------\n", max_turnaroundtime);
+		printf("-------min turnaround time %d-------\n\n", min_turnaroundtime);
 	}
 }
 
