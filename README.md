@@ -2,20 +2,35 @@
 
 ## 操作系统课程实验
 
-实验三代码
+实验三代码</br>
+lab3_beta分支处代码实验三已更新完毕</br>
+lab3分支处代码为另外一种电梯调度算法,仅实现了单个容量有限的电梯,没实现多个电梯</br>
+
+### 两种算法区别如下:
+
+#### lab3_beta算法:
+	电梯获取当前方向要去的最高(或最低)楼层,然后在上升(或下降)过程中检测当前楼层是否有请求,若有请求则停下。
+
+#### lab3算法:
+	电梯实时(每上升或下降一层)检测并计算下一个要去的楼层,然后向那个楼层移动。
+
+对于单个电梯,两种算法的运行效果相同,但是对于多个电梯,lab3分支所使用的算法不好实现运行也不直观,故采用lab3_beta所使用的算法
+
+------
+
 使用方法：编译后cd到threads目录下使用
 
-#### 1. 测试eventbarrier
+### 1. 测试eventbarrier
 
 ```bash
 ./nachos -e
 ```
-#### 2. 测试alarm
+### 2. 测试alarm
 
 ```bash
 ./nachos -g
 ```
-#### 3. 测试bridge
+### 3. 测试bridge
 
 ```bash
 ./nachos -h
@@ -40,7 +55,7 @@ int random_come_time = 10;    //车辆生成的随机时间间隔 即random()%x
 ```
 可对bridge进行不同测试
 
-#### 4. 测试elevator
+### 4. 测试elevator
 
 ```bash
 ./nachos -i
@@ -48,11 +63,15 @@ int random_come_time = 10;    //车辆生成的随机时间间隔 即random()%x
 
 切换算法方法：
 
-所有宏全部注释掉时默认为一个无限容量的电梯
+选择你想要测试的算法并注释掉其他的宏定义即可
 
-可在Elevator.h文件中修改宏定义
+可在Elevator.h文件中修改宏定义选择运行模式
 ```c++
-#define BOUNDED_ONE_ELEVATOR	//一个有限容量的电梯
+#define SINGLE_ELEVATOR
+#define MULTIPLE_ELEVATOR				//选择单个或多个电梯
+
+#define BOUNDED_ELEVATOR
+#define UNBOUNDED_ELEVATOR				//选择电梯容量是否有限
 ```
 在Elevator.h文件中可以修改对应的测试参数
 ```c++
@@ -66,6 +85,7 @@ int random_come_time = 10;    //车辆生成的随机时间间隔 即random()%x
 int num_floors = 5;						//楼层数
 int total_riders = 50;					//生成的总乘客数
 int E_random_come_time = 5;				//乘客生成的随机时间间隔 即random()%x
+int elevator_num=5;						//电梯个数(测试单个电梯时此参数无效)
 ```
 可对bridge进行不同测试
 
@@ -91,3 +111,8 @@ int E_random_come_time = 5;				//乘客生成的随机时间间隔 即random()%x
 ### 2018/5/19更新
 实现并测试了Elevator的使用SCAN算法的单个无限容量电梯和单个有限容量电梯的调度策略
 
+### 2018/5/22更新
+简化电梯的调度算法
+
+### 2018/6/9更新
+完成并测试多个电梯调度算法
