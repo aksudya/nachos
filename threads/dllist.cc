@@ -97,14 +97,14 @@ void *DLList::Remove(int *keyPtr)
 	lock->Acquire();
 	//while (this->IsEmpty())
 	//{
-	//	listEmpty->Wait(lock);	// wait until list isn't empty
-	//}		
+		//listEmpty->Wait(lock);	// wait until list isn't empty
+	//}
     if(this->IsEmpty())
     {
     	//currentThread->Yield();
         keyPtr=NULL;
         //currentThread->Yield();
-		RemovedItem=NULL;
+        RemovedItem=NULL;
     }
     else
     {
@@ -129,7 +129,7 @@ void *DLList::Remove(int *keyPtr)
         }
     }
 	//ASSERT(RemovedItem != NULL);
-	lock->Release();
+    lock->Release();
     return RemovedItem;
 
 }
@@ -210,12 +210,12 @@ void *DLList::SortedRemove(int sortKey)
 	lock->Acquire();
 	//while (this->IsEmpty())
 	//{
-	//	listEmpty->Wait(lock);	// wait until list isn't empty
+		//listEmpty->Wait(lock);	// wait until list isn't empty
 	//}
 
     if(this->IsEmpty())
     {
-		ReturnItem=NULL;
+    	ReturnItem=NULL;
     }
     else
     {
